@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lernarbeit – Interaktiver Zeitstrahl "Die Judenbuche"</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 1.5rem;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.6rem;
+    }
+
+    .subtitle {
+      margin-bottom: 1.5rem;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+      gap: 1.2rem;
+      align-items: flex-start;
+    }
+
+    .timeline-list {
+      background: #fff;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+
+    .timeline-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.6rem;
+      margin-bottom: 0.3rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 0.3rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #999;
+    }
+
+    .timeline-item.active {
+      background: #e3f2fd;
+    }
+
+    .timeline-item.active::before {
+      background: #1565c0;
+      width: 8px;
+      height: 8px;
+    }
+
+    .timeline-label {
+      margin-left: 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .timeline-time {
+      margin-left: 1.1rem;
+      font-size: 0.78rem;
+      color: #666;
+    }
+
+    .details-panel {
+      background: #fff;
+      border-radius: 0.75rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #ddd;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .details-panel h2 {
+      margin-top: 0;
+      margin-bottom: 0.4rem;
+      font-size: 1.2rem;
+    }
+
+    .details-panel p {
+      margin: 0.3rem 0;
+      line-height: 1.4;
+      font-size: 0.9rem;
+    }
+
+    .meta-line {
+      font-size: 0.82rem;
+      color: #555;
+    }
+
+    .section-title {
+      margin-top: 0.9rem;
+      margin-bottom: 0.3rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #444;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 0.8rem 0;
+    }
+
+    form {
+      margin-top: 0.3rem;
+      font-size: 0.85rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 0.4rem;
+      margin-bottom: 0.15rem;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 0.4rem 0.45rem;
+      border-radius: 0.4rem;
+      border: 1px solid #ccc;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 1.8rem;
+    }
+
+    textarea {
+      min-height: 3.1rem;
+    }
+
+    .form-row-inline {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .form-row-inline > div {
+      flex: 1;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+
+    button[type="submit"],
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button[type="submit"] {
+      background: #1565c0;
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #eee;
+      color: #333;
+    }
+
+    .btn-danger {
+      background: #c62828;
+      color: #fff;
+    }
+
+    .small-hint {
+      font-size: 0.78rem;
+      color: #777;
+      margin-top: 0.2rem;
+    }
+
+    .export-section {
+      margin-top: 1rem;
+      background: #fff;
+      border-radius: 0.75rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid #ddd;
+    }
+
+    .export-section textarea {
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      min-height: 4rem;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-list {
+        max-height: none;
+      }
+
+      .details-panel {
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Interaktiver Zeitstrahl – „Die Judenbuche“</h1>
+  <div class="subtitle">
+    Klicke links auf eine Station, um Inhalt & Interpretation zu sehen.  
+    Rechts kannst du alles bearbeiten oder neue Stationen hinzufügen – ganz ohne Programmierung.
+  </div>
+
+  <div class="layout">
+    <div class="timeline-list" id="timeline-list">
+      <!-- Dynamisch per JS -->
+    </div>
+
+    <div class="details-panel">
+      <div id="details-view">
+        <h2>Wähle eine Station aus</h2>
+        <p class="meta-line">
+          Links siehst du die Reihenfolge der Handlung. Klicke etwas an, um Details zu öffnen.
+        </p>
+      </div>
+
+      <hr />
+
+      <div>
+        <div class="section-title">Station bearbeiten oder neu anlegen</div>
+        <form id="edit-form">
+          <input type="hidden" id="event-id" />
+
+          <div class="form-row-inline">
+            <div>
+              <label for="form-order">Position im Zeitstrahl</label>
+              <input type="number" id="form-order" min="1" step="1" />
+              <div class="small-hint">
+                Kleine Zahl = weiter oben / früher. Du kannst z. B. 1, 2, 3 … vergeben.
+              </div>
+            </div>
+            <div>
+              <label for="form-time">Zeit / Abschnitt</label>
+              <input
+                type="text"
+                id="form-time"
+                placeholder="z. B. Kindheit, Mordnacht, Jahre später"
+              />
+            </div>
+          </div>
+
+          <label for="form-label">Überschrift der Station</label>
+          <input
+            type="text"
+            id="form-label"
+            placeholder="z. B. Friedrichs Kindheit im Dorf"
+          />
+
+          <label for="form-description">Inhalt (was passiert?)</label>
+          <textarea
+            id="form-description"
+            placeholder="Kurz beschreiben, was in diesem Abschnitt der Novelle geschieht."
+          ></textarea>
+
+          <label for="form-interpretation">Interpretation (Bedeutung / Analyse)</label>
+          <textarea
+            id="form-interpretation"
+            placeholder="Welche Motive, Symbole oder Aussagen werden hier deutlich? Wie hängt das mit Schuld, Gerechtigkeit, Gesellschaft, Religion usw. zusammen?"
+          ></textarea>
+
+          <label for="form-topics">Themen / Motive (Kommagetrennt)</label>
+          <input
+            type="text"
+            id="form-topics"
+            placeholder="z. B. Schuld, sozialer Druck, Gewalt, Religion"
+          />
+
+          <div class="btn-row">
+            <button type="submit">Speichern</button>
+            <button type="button" class="btn btn-secondary" id="new-btn">
+              Neue Station beginnen
+            </button>
+            <button type="button" class="btn btn-danger" id="delete-btn">
+              Station löschen
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-section">
+    <div class="section-title">Export & Zurücksetzen</div>
+    <p style="font-size: 0.8rem; margin-top: 0;">
+      Hier kannst du deine bearbeiteten Daten als JSON ansehen (z. B. zum Sichern in einer
+      Datei oder zum Kopieren) oder alles wieder auf die ursprüngliche Version zurücksetzen.
+    </p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="export-btn">Daten als JSON anzeigen</button>
+      <button class="btn btn-danger" id="reset-btn">
+        Auf ursprünglichen Zeitstrahl zurücksetzen
+      </button>
+    </div>
+    <textarea id="export-area" placeholder="Hier erscheinen die exportierten Daten…" readonly></textarea>
+  </div>
+
+  <script>
+    // --- Ursprüngliche Daten zum Zeitstrahl (vorbearbeitet, inkl. Interpretation) ---
+    const defaultEvents = [
+      {
+        id: "k1",
+        order: 1,
+        time: "Vor Friedrichs Geburt / Vorgeschichte",
+        label: "Hermann Mergel, Armut und Gewalt",
+        description:
+          "Im Dorf B. leben die Mergels in großer Armut. Friedrichs Vater Hermann ist gewalttätig, trinkt viel und ist in Holzdiebstähle und andere Waldfrevel verstrickt. Die Dorfgemeinschaft ist von Abhängigkeiten, Vorteilen und Korruption geprägt.",
+        interpretation:
+          "Die Vorgeschichte zeigt den sozialen und moralischen Nährboden, aus dem Friedrich stammt. Die Novelle betont damit eine deterministische Sicht: Charakter und Schuld entstehen nicht im luftleeren Raum, sondern aus Milieu, Armut und Gewalt. Schon hier wird klar, dass Recht und Gerechtigkeit im Dorf nicht verlässlich funktionieren.",
+        topics: "Armut, Gewalt, sozialer Determinismus, Korruption, Milieu"
+      },
+      {
+        id: "k2",
+        order: 2,
+        time: "Friedrichs Kindheit",
+        label: "Friedrich zwischen Pastor M. und Johannes Niemand",
+        description:
+          "Nach dem Tod des Vaters lebt Friedrich mit seiner Mutter in schwierigen Verhältnissen. Er hat Kontakt zu dem moralisch vorbildlichen Pastor M., aber auch zu dem Außenseiter Johannes Niemand, der als halbkriminell gilt. Friedrich schwankt zwischen diesen Einflüssen.",
+        interpretation:
+          "Diese Station macht den inneren Konflikt deutlich: Friedrich könnte einen 'guten' Weg einschlagen, wird aber letztlich stärker vom Milieu der Gesetzesverstöße angezogen. Das unterstreicht das Motiv von Freiheit vs. Determination: Wie frei ist Friedrich in seinen Entscheidungen?",
+        topics: "Erziehung, Vorbilder, Freiheit vs. Determinismus, Außenseiter"
+      },
+      {
+        id: "k3",
+        order: 3,
+        time: "Junge Erwachsenenjahre",
+        label: "Wald, Holzfrevel und soziales Klima",
+        description:
+          "Friedrich arbeitet im Umfeld von Simon Semmler und wird in Holzdiebstähle und andere illegale Waldnutzung verwickelt. Die Grenzen zwischen Recht und Unrecht sind im Dorf unscharf, da viele von den Freveln profitieren.",
+        interpretation:
+          "Der Wald wird zu einem zentralen Symbolraum: Hier geschehen geheime, oft illegale Handlungen. Die Dorfgemeinschaft akzeptiert dies stillschweigend. Das zeigt die Kluft zwischen offiziellem Recht und gelebter Moral sowie die Macht der Gemeinschaft über das Individuum.",
+        topics: "Wald als Symbol, Recht vs. gelebte Moral, Gruppendruck, Mitläufertum"
+      },
+      {
+        id: "k4",
+        order: 4,
+        time: "Zeit vor dem Mord",
+        label: "Konflikte mit dem Juden Aaron",
+        description:
+          "Der jüdische Holzhändler Aaron gerät mit den Dorfbewohnern in Streit, unter anderem wegen Geldforderungen. Es kommt zu Spannungen und Feindseligkeiten. Aaron wird als Fremder wahrgenommen und teilweise offen antisemitisch behandelt.",
+        interpretation:
+          "Die Figur Aarons macht den religiös und sozial begründeten Antijudaismus sichtbar. Er ist Projektionsfläche für wirtschaftliche Frustrationen und Vorurteile. Die Novelle zeigt, wie Gewalt durch Vorurteile und ökonomische Interessen vorbereitet wird.",
+        topics: "Antijudaismus, Vorurteile, Sündenbock, ökonomische Spannungen"
+      },
+      {
+        id: "k5",
+        order: 5,
+        time: "Mordnacht",
+        label: "Der Mord an Aaron im Wald",
+        description:
+          "In einer verhängnisvollen Nacht treffen Friedrich und Johannes Niemand – betrunken – im Wald auf Aaron. Später wird Aaron erschlagen aufgefunden. Die genauen Umstände bleiben unklar. Die Dorfgemeinschaft verdächtigt Friedrich stark, doch ein eindeutiger Beweis fehlt.",
+        interpretation:
+          "Die Unklarheit der Täterschaft ist zentral: Die Novelle spielt bewusst mit Unsicherheit und Schuldfragen. Damit stellt sie auch die Grenzen menschlicher Wahrheitsermittlung und der Justiz dar. Zugleich verdichten sich hier die Motive Wald, Gewalt, Schuld und Ausgrenzung des Juden.",
+        topics: "Schuldfrage, Ungewissheit, Gewalt, Wald, Justiz"
+      },
+      {
+        id: "k6",
+        order: 6,
+        time: "Unmittelbar nach dem Mord",
+        label: "Verdacht, Verhör und Friedrichs Flucht",
+        description:
+          "Nach dem Mord wird Friedrich verhört. Die Dorfgemeinschaft und die Indizien legen seine Täterschaft nahe, aber ein Geständnis gibt es nicht. Kurz vor einer endgültigen Entscheidung flieht Friedrich plötzlich und gilt als verschwunden.",
+        interpretation:
+          "Die Flucht wirkt wie ein indirektes Schuldeingeständnis, bleibt aber rechtlich unbewiesen. Hier prallen menschliches Rechtssystem und moralische Schuld aufeinander. Die Novelle zeigt, wie schwach die Institutionen sind und wie stark Gerüchte und Meinungen der Gemeinschaft.",
+        topics: "Rechtssystem, Gerüchte, Schuld vs. Unschuldsvermutung, Flucht"
+      },
+      {
+        id: "k7",
+        order: 7,
+        time: "Viele Jahre später",
+        label: "Rückkehr des Fremden",
+        description:
+          "Jahre später taucht ein Fremder auf, der sich als 'von Reisenheim' ausgibt und später als Friedrich Mergel erkannt wird. Er wirkt gebrochen und gezeichnet von seinem Leben in der Fremde.",
+        interpretation:
+          "Die Rückkehr des scheinbar Verschollenen wirkt wie eine späte Konfrontation mit der Vergangenheit. Die Zeit heilt hier nichts; Schuld und Erinnerung holen Friedrich ein. Das verstärkt das Motiv der Unentrinnbarkeit von Schuld.",
+        topics: "Vergangenheit, Identität, Schuld, Heimkehr"
+      },
+      {
+        id: "k8",
+        order: 8,
+        time: "Nach der Rückkehr",
+        label: "Verhöre und erneute Gerichtsverfahren",
+        description:
+          "Friedrich wird erneut zu den Ereignissen rund um den Mord an Aaron befragt. Wieder bleiben viele Fragen offen, trotz einiger neuer Informationen. Die endgültige Wahrheitsfindung gelingt nicht.",
+        interpretation:
+          "Die erneuten Verhöre unterstreichen, dass das menschliche Streben nach absoluter Wahrheit an Grenzen stößt. Rechtliche Klärung und moralische Wahrheit fallen auseinander. Die Novelle bleibt bewusst ambivalent.",
+        topics: "Wahrheit, Justiz, Ambivalenz, Erkenntnisgrenzen"
+      },
+      {
+        id: "k9",
+        order: 9,
+        time: "Schlussszene",
+        label: "Friedrichs Tod an der Judenbuche",
+        description:
+          "Kurz nach seiner Rückkehr wird Friedrich tot an der Judenbuche aufgefunden – erhängt. Am Baum befindet sich eine Inschrift, die auf göttliche Vergeltung für den Mord an Aaron hinweist.",
+        interpretation:
+          "Die Judenbuche wird zum starken Symbol göttlicher oder übermenschlicher Gerechtigkeit: Was das menschliche Recht nicht eindeutig klären konnte, scheint auf einer höheren Ebene 'gerichtet' zu werden. Gleichzeitig bleibt offen, ob es Selbstmord, Verzweiflung oder eine Art symbolischer 'Strafvollzug' ist.",
+        topics: "Göttliches Gericht, Symbolik, Tod, letzte Konsequenz der Schuld"
+      },
+      {
+        id: "k10",
+        order: 10,
+        time: "Rahmen / Erzähler",
+        label: "Rahmenerzählung und historische Einbettung",
+        description:
+          "Die Novelle ist als quasi-dokumentarische Erzählung gestaltet. Der Erzähler verweist auf angeblich reale Akten und Quellen und verortet die Handlung in einem konkreten historischen und regionalen Kontext.",
+        interpretation:
+          "Der quasi-dokumentarische Ton verstärkt den Realismus und macht die Schuldfrage noch bedrückender, weil sie 'wirklich' hätte geschehen können. Gleichzeitig reflektiert die Novelle den Umgang mit Verbrechen, Juden und Randgruppen in der damaligen Gesellschaft.",
+        topics: "Realismus, Erzählerrolle, historische Authentizität, Gesellschaftskritik"
+      }
+    ];
+
+    const STORAGE_KEY = "judenbucheTimeline";
+
+    let events = [];
+    let selectedId = null;
+
+    function loadEvents() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            events = parsed;
+            return;
+          }
+        } catch (e) {
+          console.warn("Konnte gespeicherte Daten nicht laden, verwende Standarddaten.", e);
+        }
+      }
+      events = JSON.parse(JSON.stringify(defaultEvents));
+    }
+
+    function saveEvents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+
+    function renderTimeline() {
+      events.sort((a, b) => (a.order || 0) - (b.order || 0));
+      const list = document.getElementById("timeline-list");
+      list.innerHTML = "";
+
+      events.forEach((ev) => {
+        const btn = document.createElement("button");
+        btn.className = "timeline-item";
+        if (ev.id === selectedId) {
+          btn.classList.add("active");
+        }
+        btn.dataset.id = ev.id;
+
+        const labelDiv = document.createElement("div");
+        labelDiv.className = "timeline-label";
+        labelDiv.textContent = ev.label || "(ohne Titel)";
+
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "timeline-time";
+        timeDiv.textContent = ev.time || "";
+
+        btn.appendChild(labelDiv);
+        btn.appendChild(timeDiv);
+
+        btn.addEventListener("click", () => {
+          selectEvent(ev.id);
+        });
+
+        list.appendChild(btn);
+      });
+
+      if (!selectedId && events.length > 0) {
+        selectEvent(events[0].id);
+      }
+
+      if (events.length === 0) {
+        const emptyHint = document.createElement("div");
+        emptyHint.style.fontSize = "0.85rem";
+        emptyHint.style.color = "#777";
+        emptyHint.textContent = "Noch keine Stationen vorhanden. Erstelle rechts eine neue.";
+        list.appendChild(emptyHint);
+      }
+    }
+
+    function selectEvent(id) {
+      selectedId = id;
+      const ev = events.find((e) => e.id === id);
+      const detailsView = document.getElementById("details-view");
+
+      if (!ev) {
+        detailsView.innerHTML =
+          "<h2>Keine Station ausgewählt</h2><p>Wähle links eine Station aus oder erstelle rechts eine neue.</p>";
+        fillFormForEvent(null);
+        highlightActive();
+        return;
+      }
+
+      let topicsHtml = "";
+      if (ev.topics && String(ev.topics).trim() !== "") {
+        topicsHtml =
+          '<p><strong>Themen / Motive:</strong> ' + escapeHtml(String(ev.topics)) + "</p>";
+      }
+
+      detailsView.innerHTML =
+        "<h2>" +
+        escapeHtml(ev.label || "(ohne Titel)") +
+        "</h2>" +
+        '<p class="meta-line"><strong>Zeit / Abschnitt:</strong> ' +
+        escapeHtml(ev.time || "") +
+        "</p>" +
+        "<p><strong>Inhalt:</strong><br>" +
+        escapeHtml(ev.description || "") +
+        "</p>" +
+        "<p><strong>Interpretation:</strong><br>" +
+        escapeHtml(ev.interpretation || "") +
+        "</p>" +
+        topicsHtml;
+
+      fillFormForEvent(ev);
+      highlightActive();
+    }
+
+    function highlightActive() {
+      const items = document.querySelectorAll(".timeline-item");
+      items.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.id === String(selectedId));
+      });
+    }
+
+    function fillFormForEvent(ev) {
+      document.getElementById("event-id").value = ev ? ev.id : "";
+      document.getElementById("form-order").value = ev && ev.order != null ? ev.order : "";
+      document.getElementById("form-time").value = ev ? ev.time || "" : "";
+      document.getElementById("form-label").value = ev ? ev.label || "" : "";
+      document.getElementById("form-description").value = ev ? ev.description || "" : "";
+      document.getElementById("form-interpretation").value = ev ? ev.interpretation || "" : "";
+      document.getElementById("form-topics").value = ev ? ev.topics || "" : "";
+    }
+
+    function clearFormForNew() {
+      selectedId = null;
+      document.getElementById("event-id").value = "";
+      document.getElementById("form-order").value = events.length + 1;
+      document.getElementById("form-time").value = "";
+      document.getElementById("form-label").value = "";
+      document.getElementById("form-description").value = "";
+      document.getElementById("form-interpretation").value = "";
+      document.getElementById("form-topics").value = "";
+      highlightActive();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    // --- Event-Handler ---
+
+    document.getElementById("edit-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const idField = document.getElementById("event-id");
+      const id = idField.value || "e_" + Date.now();
+      const orderVal = Number(document.getElementById("form-order").value);
+      const order = isNaN(orderVal) ? events.length + 1 : orderVal;
+
+      const time = document.getElementById("form-time").value.trim();
+      const label = document.getElementById("form-label").value.trim();
+      const description = document.getElementById("form-description").value.trim();
+      const interpretation = document
+        .getElementById("form-interpretation")
+        .value.trim();
+      const topics = document.getElementById("form-topics").value.trim();
+
+      let ev = events.find((e) => e.id === id);
+      if (!ev) {
+        ev = { id };
+        events.push(ev);
+      }
+
+      ev.order = order;
+      ev.time = time;
+      ev.label = label;
+      ev.description = description;
+      ev.interpretation = interpretation;
+      ev.topics = topics;
+
+      selectedId = id;
+      saveEvents();
+      renderTimeline();
+      selectEvent(id);
+    });
+
+    document.getElementById("new-btn").addEventListener("click", function () {
+      clearFormForNew();
+      const detailsView = document.getElementById("details-view");
+      detailsView.innerHTML =
+        "<h2>Neue Station erstellen</h2><p>Fülle rechts die Felder aus und klicke auf „Speichern“.</p>";
+    });
+
+    document.getElementById("delete-btn").addEventListener("click", function () {
+      if (!selectedId) return;
+      if (!confirm("Willst du diese Station wirklich löschen?")) return;
+      events = events.filter((e) => e.id !== selectedId);
+      selectedId = null;
+      saveEvents();
+      renderTimeline();
+      const detailsView = document.getElementById("details-view");
+      detailsView.innerHTML =
+        "<h2>Station gelöscht</h2><p>Wähle links eine andere Station oder erstelle rechts eine neue.</p>";
+      clearFormForNew();
+    });
+
+    document.getElementById("export-btn").addEventListener("click", function () {
+      const area = document.getElementById("export-area");
+      area.value = JSON.stringify(events, null, 2);
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", function () {
+      if (
+        !confirm(
+          "Willst du wirklich auf den ursprünglichen Zeitstrahl zurücksetzen? Alle eigenen Änderungen gehen dabei verloren."
+        )
+      ) {
+        return;
+      }
+      events = JSON.parse(JSON.stringify(defaultEvents));
+      selectedId = null;
+      saveEvents();
+      renderTimeline();
+      document.getElementById("export-area").value = "";
+      const detailsView = document.getElementById("details-view");
+      detailsView.innerHTML =
+        "<h2>Ursprünglicher Zeitstrahl wiederhergestellt</h2><p>Wähle links eine Station aus.</p>";
+      clearFormForNew();
+    });
+
+    // --- Initialisierung ---
+    window.addEventListener("DOMContentLoaded", function () {
+      loadEvents();
+      renderTimeline();
+    });
+  </script>
+</body>
+</html>
