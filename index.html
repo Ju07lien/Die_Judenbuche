@@ -235,3 +235,849 @@
     }
     .badge{
       font-size:.74rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.75);
+      color: var(--muted);
+    }
+
+    /* Details */
+    .details h2{
+      margin:0 0 6px;
+      font-size: 1.15rem;
+      letter-spacing:.2px;
+    }
+    .meta-line{
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height:1.35;
+    }
+    .details p{
+      margin: 10px 0 0;
+      line-height: 1.45;
+      font-size: .92rem;
+    }
+
+    .topic-badges{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .topic{
+      font-size: .78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(37,99,235,.18);
+      background: rgba(37,99,235,.08);
+      color: #1f3f96;
+    }
+
+    hr{
+      border:none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0;
+    }
+
+    .section-title{
+      margin: 0 0 10px;
+      font-size:.78rem;
+      letter-spacing: .10em;
+      color: #374151;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    form label{
+      display:block;
+      font-weight: 700;
+      font-size: .84rem;
+      margin: 10px 0 6px;
+      color: #111827;
+    }
+
+    input[type="text"], input[type="number"], textarea{
+      width:100%;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.90);
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-size: .9rem;
+      outline:none;
+    }
+    textarea{ min-height: 86px; resize: vertical; }
+
+    .row2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 880px){
+      .layout{ grid-template-columns: 1fr; }
+      .timeline-list{ max-height: none; }
+      .row2{ grid-template-columns: 1fr; }
+    }
+
+    .hint{ margin-top: 6px; color: var(--muted); font-size: .78rem; }
+
+    .btnrow{ display:flex; gap: 10px; flex-wrap:wrap; margin-top: 12px; }
+
+    button, .btn{
+      border:none;
+      cursor:pointer;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: .86rem;
+      font-weight: 750;
+    }
+
+    .primary{ background: var(--accent); color:#fff; }
+    .secondary{ background: rgba(17,24,39,.06); color:#111827; border:1px solid var(--border); }
+    .danger{ background: var(--danger); color:#fff; }
+    button:disabled{ opacity: .55; cursor: not-allowed; }
+
+    .lockbar{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: 1px dashed rgba(37,99,235,.35);
+      background: rgba(37,99,235,.08);
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+    .lockbar .left{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      color: #1f3f96;
+      font-weight: 700;
+      font-size: .86rem;
+    }
+    .lockbar input{
+      width: 120px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(37,99,235,.25);
+      background: rgba(255,255,255,.9);
+    }
+
+    /* Export card */
+    .export-area{
+      width:100%;
+      min-height: 140px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .8rem;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Interaktiver Zeitstrahl – „Die Judenbuche“</h1>
+      <p class="subtitle">
+        Links: Zeitstrahl nach <strong>Handlungs-Chronologie</strong> oder <strong>Buch-Reihenfolge</strong>.
+        Rechts: Inhalte ansehen. Bearbeiten ist nur mit Code möglich.
+      </p>
+
+      <div class="topbar">
+        <div class="pillrow">
+          <span class="chip"><span class="dot"></span><strong>Ansicht:</strong> <span id="mode-label">Handlungs-Chronologie</span></span>
+          <span class="chip"><strong>Status:</strong> <span id="edit-status">Nur ansehen (gesperrt)</span></span>
+        </div>
+
+        <div class="seg" aria-label="Ansicht umschalten">
+          <button id="mode-story" class="active" type="button">Chronologie</button>
+          <button id="mode-book" type="button">Im Buch</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT: LIST -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">≡</span>
+            <span>Stationen</span>
+          </div>
+          <span class="badge" id="count-badge">0</span>
+        </div>
+        <div class="card-body timeline-tools">
+          <div class="search" role="search">
+            <div class="mag">⌕</div>
+            <input id="search" type="text" placeholder="Suchen (Titel, Zeit, Themen) …" />
+          </div>
+
+          <div class="timeline-list" id="timeline-list">
+            <!-- JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: DETAILS + EDIT -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">◎</span>
+            <span>Details & Bearbeitung</span>
+          </div>
+          <span class="badge" id="selected-badge">—</span>
+        </div>
+
+        <div class="card-body">
+          <!-- LOCK BAR -->
+          <div class="lockbar" id="lockbar">
+            <div class="left">
+              🔒 Bearbeiten gesperrt – Code eingeben:
+              <input id="code-input" type="password" inputmode="numeric" maxlength="10" placeholder="1987" />
+              <button class="primary" id="unlock-btn" type="button">Freischalten</button>
+              <button class="secondary" id="lock-btn" type="button" style="display:none;">Sperren</button>
+            </div>
+            <div class="badge" id="lock-hint">Nur ansehen</div>
+          </div>
+
+          <div class="details" id="details-view">
+            <h2>Wähle eine Station aus</h2>
+            <p class="meta-line">
+              Nutze links den Zeitstrahl. Du kannst oben zwischen Chronologie und Buch-Reihenfolge wechseln.
+            </p>
+          </div>
+
+          <hr />
+
+          <div>
+            <div class="section-title">Station bearbeiten oder neu anlegen</div>
+
+            <form id="edit-form">
+              <input type="hidden" id="event-id" />
+
+              <div class="row2">
+                <div>
+                  <label for="form-storyOrder">Position – Chronologie</label>
+                  <input type="number" id="form-storyOrder" min="1" step="1" />
+                  <div class="hint">Kleine Zahl = früher in der Handlung.</div>
+                </div>
+                <div>
+                  <label for="form-bookOrder">Position – Buch-Reihenfolge</label>
+                  <input type="number" id="form-bookOrder" min="1" step="1" />
+                  <div class="hint">Kleine Zahl = früher im Buch.</div>
+                </div>
+              </div>
+
+              <label for="form-time">Zeit / Abschnitt</label>
+              <input type="text" id="form-time" placeholder="z. B. Kindheit, Mordnacht, Jahre später" />
+
+              <label for="form-label">Überschrift der Station</label>
+              <input type="text" id="form-label" placeholder="z. B. Friedrichs Kindheit im Dorf" />
+
+              <label for="form-description">Inhalt (was passiert?)</label>
+              <textarea id="form-description" placeholder="Kurz beschreiben, was geschieht."></textarea>
+
+              <label for="form-interpretation">Interpretation (Bedeutung / Analyse)</label>
+              <textarea id="form-interpretation" placeholder="Bedeutung, Motive, Aussagen …"></textarea>
+
+              <label for="form-topics">Themen / Motive (Kommagetrennt)</label>
+              <input type="text" id="form-topics" placeholder="z. B. Schuld, sozialer Druck, Gewalt, Religion" />
+
+              <div class="btnrow">
+                <button type="submit" class="primary" id="save-btn">Speichern</button>
+                <button type="button" class="secondary" id="new-btn">Neue Station</button>
+                <button type="button" class="danger" id="delete-btn">Station löschen</button>
+              </div>
+
+              <div class="hint" id="edit-hint">
+                Tipp: Ohne Code ist alles nur „Ansehen“. Code: <strong>1987</strong>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="card" style="margin-top:14px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">⇩</span>
+          <span>Export & Zurücksetzen</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="meta-line" style="margin-top:0;">
+          Export zeigt deine Daten als JSON (z. B. sichern/kopieren). Zurücksetzen lädt die Original-Version.
+          <strong>Bearbeiten/Zurücksetzen ist nur mit Code möglich.</strong>
+        </p>
+
+        <div class="btnrow">
+          <button class="secondary" id="export-btn" type="button">Daten als JSON anzeigen</button>
+          <button class="danger" id="reset-btn" type="button">Auf Original zurücksetzen</button>
+        </div>
+
+        <textarea id="export-area" class="export-area" placeholder="Hier erscheinen die exportierten Daten…" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // 1) DEFAULT EVENTS (inhaltlich unverändert)
+    //    NEU: storyOrder & bookOrder
+    // =========================
+    const defaultEvents = [
+      {
+        id: "k1",
+        storyOrder: 1,
+        bookOrder: 1,
+        time: "Vor Friedrichs Geburt / Vorgeschichte",
+        label: "Hermann Mergel, Armut und Gewalt",
+        description:
+          "Im Dorf B. leben die Mergels in großer Armut. Friedrichs Vater Hermann ist gewalttätig, trinkt viel und ist in Holzdiebstähle und andere Waldfrevel verstrickt. Die Dorfgemeinschaft ist von Abhängigkeiten, Vorteilen und Korruption geprägt.",
+        interpretation:
+          "Die Vorgeschichte zeigt den sozialen und moralischen Nährboden, aus dem Friedrich stammt. Die Novelle betont damit eine deterministische Sicht: Charakter und Schuld entstehen nicht im luftleeren Raum, sondern aus Milieu, Armut und Gewalt. Schon hier wird klar, dass Recht und Gerechtigkeit im Dorf nicht verlässlich funktionieren.",
+        topics: "Armut, Gewalt, sozialer Determinismus, Korruption, Milieu"
+      },
+      {
+        id: "k2",
+        storyOrder: 2,
+        bookOrder: 2,
+        time: "Friedrichs Kindheit",
+        label: "Friedrich zwischen Pastor M. und Johannes Niemand",
+        description:
+          "Nach dem Tod des Vaters lebt Friedrich mit seiner Mutter in schwierigen Verhältnissen. Er hat Kontakt zu dem moralisch vorbildlichen Pastor M., aber auch zu dem Außenseiter Johannes Niemand, der als halbkriminell gilt. Friedrich schwankt zwischen diesen Einflüssen.",
+        interpretation:
+          "Diese Station macht den inneren Konflikt deutlich: Friedrich könnte einen 'guten' Weg einschlagen, wird aber letztlich stärker vom Milieu der Gesetzesverstöße angezogen. Das unterstreicht das Motiv von Freiheit vs. Determination: Wie frei ist Friedrich in seinen Entscheidungen?",
+        topics: "Erziehung, Vorbilder, Freiheit vs. Determinismus, Außenseiter"
+      },
+      {
+        id: "k3",
+        storyOrder: 3,
+        bookOrder: 3,
+        time: "Junge Erwachsenenjahre",
+        label: "Wald, Holzfrevel und soziales Klima",
+        description:
+          "Friedrich arbeitet im Umfeld von Simon Semmler und wird in Holzdiebstähle und andere illegale Waldnutzung verwickelt. Die Grenzen zwischen Recht und Unrecht sind im Dorf unscharf, da viele von den Freveln profitieren.",
+        interpretation:
+          "Der Wald wird zu einem zentralen Symbolraum: Hier geschehen geheime, oft illegale Handlungen. Die Dorfgemeinschaft akzeptiert dies stillschweigend. Das zeigt die Kluft zwischen offiziellem Recht und gelebter Moral sowie die Macht der Gemeinschaft über das Individuum.",
+        topics: "Wald als Symbol, Recht vs. gelebte Moral, Gruppendruck, Mitläufertum"
+      },
+      {
+        id: "k4",
+        storyOrder: 4,
+        bookOrder: 4,
+        time: "Zeit vor dem Mord",
+        label: "Konflikte mit dem Juden Aaron",
+        description:
+          "Der jüdische Holzhändler Aaron gerät mit den Dorfbewohnern in Streit, unter anderem wegen Geldforderungen. Es kommt zu Spannungen und Feindseligkeiten. Aaron wird als Fremder wahrgenommen und teilweise offen antisemitisch behandelt.",
+        interpretation:
+          "Die Figur Aarons macht den religiös und sozial begründeten Antijudaismus sichtbar. Er ist Projektionsfläche für wirtschaftliche Frustrationen und Vorurteile. Die Novelle zeigt, wie Gewalt durch Vorurteile und ökonomische Interessen vorbereitet wird.",
+        topics: "Antijudaismus, Vorurteile, Sündenbock, ökonomische Spannungen"
+      },
+      {
+        id: "k5",
+        storyOrder: 5,
+        bookOrder: 5,
+        time: "Mordnacht",
+        label: "Der Mord an Aaron im Wald",
+        description:
+          "In einer verhängnisvollen Nacht treffen Friedrich und Johannes Niemand – betrunken – im Wald auf Aaron. Später wird Aaron erschlagen aufgefunden. Die genauen Umstände bleiben unklar. Die Dorfgemeinschaft verdächtigt Friedrich stark, doch ein eindeutiger Beweis fehlt.",
+        interpretation:
+          "Die Unklarheit der Täterschaft ist zentral: Die Novelle spielt bewusst mit Unsicherheit und Schuldfragen. Damit stellt sie auch die Grenzen menschlicher Wahrheitsermittlung und der Justiz dar. Zugleich verdichten sich hier die Motive Wald, Gewalt, Schuld und Ausgrenzung des Juden.",
+        topics: "Schuldfrage, Ungewissheit, Gewalt, Wald, Justiz"
+      },
+      {
+        id: "k6",
+        storyOrder: 6,
+        bookOrder: 6,
+        time: "Unmittelbar nach dem Mord",
+        label: "Verdacht, Verhör und Friedrichs Flucht",
+        description:
+          "Nach dem Mord wird Friedrich verhört. Die Dorfgemeinschaft und die Indizien legen seine Täterschaft nahe, aber ein Geständnis gibt es nicht. Kurz vor einer endgültigen Entscheidung flieht Friedrich plötzlich und gilt als verschwunden.",
+        interpretation:
+          "Die Flucht wirkt wie ein indirektes Schuldeingeständnis, bleibt aber rechtlich unbewiesen. Hier prallen menschliches Rechtssystem und moralische Schuld aufeinander. Die Novelle zeigt, wie schwach die Institutionen sind und wie stark Gerüchte und Meinungen der Gemeinschaft.",
+        topics: "Rechtssystem, Gerüchte, Schuld vs. Unschuldsvermutung, Flucht"
+      },
+      {
+        id: "k7",
+        storyOrder: 7,
+        bookOrder: 7,
+        time: "Viele Jahre später",
+        label: "Rückkehr des Fremden",
+        description:
+          "Jahre später taucht ein Fremder auf, der sich als 'von Reisenheim' ausgibt und später als Friedrich Mergel erkannt wird. Er wirkt gebrochen und gezeichnet von seinem Leben in der Fremde.",
+        interpretation:
+          "Die Rückkehr des scheinbar Verschollenen wirkt wie eine späte Konfrontation mit der Vergangenheit. Die Zeit heilt hier nichts; Schuld und Erinnerung holen Friedrich ein. Das verstärkt das Motiv der Unentrinnbarkeit von Schuld.",
+        topics: "Vergangenheit, Identität, Schuld, Heimkehr"
+      },
+      {
+        id: "k8",
+        storyOrder: 8,
+        bookOrder: 8,
+        time: "Nach der Rückkehr",
+        label: "Verhöre und erneute Gerichtsverfahren",
+        description:
+          "Friedrich wird erneut zu den Ereignissen rund um den Mord an Aaron befragt. Wieder bleiben viele Fragen offen, trotz einiger neuer Informationen. Die endgültige Wahrheitsfindung gelingt nicht.",
+        interpretation:
+          "Die erneuten Verhöre unterstreichen, dass das menschliche Streben nach absoluter Wahrheit an Grenzen stößt. Rechtliche Klärung und moralische Wahrheit fallen auseinander. Die Novelle bleibt bewusst ambivalent.",
+        topics: "Wahrheit, Justiz, Ambivalenz, Erkenntnisgrenzen"
+      },
+      {
+        id: "k9",
+        storyOrder: 9,
+        bookOrder: 9,
+        time: "Schlussszene",
+        label: "Friedrichs Tod an der Judenbuche",
+        description:
+          "Kurz nach seiner Rückkehr wird Friedrich tot an der Judenbuche aufgefunden – erhängt. Am Baum befindet sich eine Inschrift, die auf göttliche Vergeltung für den Mord an Aaron hinweist.",
+        interpretation:
+          "Die Judenbuche wird zum starken Symbol göttlicher oder übermenschlicher Gerechtigkeit: Was das menschliche Recht nicht eindeutig klären konnte, scheint auf einer höheren Ebene 'gerichtet' zu werden. Gleichzeitig bleibt offen, ob es Selbstmord, Verzweiflung oder eine Art symbolischer 'Strafvollzug' ist.",
+        topics: "Göttliches Gericht, Symbolik, Tod, letzte Konsequenz der Schuld"
+      },
+      {
+        id: "k10",
+        storyOrder: 10,
+        bookOrder: 10,
+        time: "Rahmen / Erzähler",
+        label: "Rahmenerzählung und historische Einbettung",
+        description:
+          "Die Novelle ist als quasi-dokumentarische Erzählung gestaltet. Der Erzähler verweist auf angeblich reale Akten und Quellen und verortet die Handlung in einem konkreten historischen und regionalen Kontext.",
+        interpretation:
+          "Der quasi-dokumentarische Ton verstärkt den Realismus und macht die Schuldfrage noch bedrückender, weil sie 'wirklich' hätte geschehen können. Gleichzeitig reflektiert die Novelle den Umgang mit Verbrechen, Juden und Randgruppen in der damaligen Gesellschaft.",
+        topics: "Realismus, Erzählerrolle, historische Authentizität, Gesellschaftskritik"
+      }
+    ];
+
+    // =========================
+    // 2) STORAGE + STATE
+    // =========================
+    const STORAGE_KEY = "judenbucheTimeline_v2";
+    const EDIT_UNLOCK_KEY = "judenbucheEditUnlocked_session";
+
+    let events = [];
+    let selectedId = null;
+    let mode = "story"; // "story" or "book"
+    let query = "";
+
+    // =========================
+    // 3) HELPERS
+    // =========================
+    function deepCopy(x){ return JSON.parse(JSON.stringify(x)); }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function splitTopics(topicsStr){
+      const raw = String(topicsStr || "").trim();
+      if(!raw) return [];
+      return raw.split(",").map(s => s.trim()).filter(Boolean);
+    }
+
+    function isUnlocked(){
+      return sessionStorage.getItem(EDIT_UNLOCK_KEY) === "1";
+    }
+
+    function setUnlocked(val){
+      if(val) sessionStorage.setItem(EDIT_UNLOCK_KEY, "1");
+      else sessionStorage.removeItem(EDIT_UNLOCK_KEY);
+      updateLockUI();
+      applyEditLock();
+    }
+
+    function normalizeEvents(arr){
+      // Migration: alte Daten hatten "order" statt storyOrder und kein bookOrder
+      return arr.map(ev => {
+        const copy = { ...ev };
+
+        // Falls altes Feld "order" existiert:
+        if (copy.storyOrder == null && copy.order != null) {
+          copy.storyOrder = copy.order;
+        }
+
+        // Wenn bookOrder fehlt: setze gleich storyOrder
+        if (copy.bookOrder == null) {
+          copy.bookOrder = copy.storyOrder != null ? copy.storyOrder : 9999;
+        }
+
+        // optional: altes Feld entfernen (nicht zwingend)
+        // delete copy.order;
+
+        return copy;
+      });
+    }
+
+    function loadEvents() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            events = normalizeEvents(parsed);
+            return;
+          }
+        } catch (e) {
+          console.warn("Konnte gespeicherte Daten nicht laden, verwende Standarddaten.", e);
+        }
+      }
+      events = normalizeEvents(deepCopy(defaultEvents));
+    }
+
+    function saveEvents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+
+    function currentOrderValue(ev){
+      if(mode === "book") return Number(ev.bookOrder ?? 9999);
+      return Number(ev.storyOrder ?? 9999);
+    }
+
+    function modeLabel(){
+      return mode === "book" ? "Buch-Reihenfolge" : "Handlungs-Chronologie";
+    }
+
+    function filteredAndSortedEvents(){
+      const q = query.trim().toLowerCase();
+      let list = [...events];
+
+      if(q){
+        list = list.filter(ev => {
+          const hay = [
+            ev.label, ev.time, ev.topics, ev.description, ev.interpretation
+          ].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      list.sort((a,b) => currentOrderValue(a) - currentOrderValue(b));
+      return list;
+    }
+
+    // =========================
+    // 4) RENDER
+    // =========================
+    function renderTimeline() {
+      const list = document.getElementById("timeline-list");
+      const items = filteredAndSortedEvents();
+      list.innerHTML = "";
+
+      document.getElementById("count-badge").textContent = String(items.length);
+
+      if(items.length === 0){
+        const empty = document.createElement("div");
+        empty.style.padding = "12px";
+        empty.style.color = "#6b7280";
+        empty.style.fontSize = ".9rem";
+        empty.textContent = "Keine Treffer. Suche anpassen oder neue Station erstellen (mit Code).";
+        list.appendChild(empty);
+        return;
+      }
+
+      items.forEach((ev) => {
+        const btn = document.createElement("button");
+        btn.className = "timeline-item";
+        btn.dataset.id = ev.id;
+        if (ev.id === selectedId) btn.classList.add("active");
+
+        const marker = document.createElement("div");
+        marker.className = "marker";
+
+        const ttext = document.createElement("div");
+        ttext.className = "ttext";
+
+        const label = document.createElement("p");
+        label.className = "timeline-label";
+        label.textContent = ev.label || "(ohne Titel)";
+
+        const time = document.createElement("div");
+        time.className = "timeline-time";
+
+        const badgeA = document.createElement("span");
+        badgeA.className = "badge";
+        badgeA.textContent = (mode === "book" ? "Buch #" : "Chrono #") + (currentOrderValue(ev) || "—");
+
+        const badgeB = document.createElement("span");
+        badgeB.className = "badge";
+        badgeB.textContent = ev.time ? ev.time : "—";
+
+        time.appendChild(badgeA);
+        time.appendChild(badgeB);
+
+        ttext.appendChild(label);
+        ttext.appendChild(time);
+
+        btn.appendChild(marker);
+        btn.appendChild(ttext);
+
+        btn.addEventListener("click", () => selectEvent(ev.id));
+        list.appendChild(btn);
+      });
+
+      // wenn selectedId gefiltert nicht sichtbar ist, nehme erstes
+      const exists = items.some(e => e.id === selectedId);
+      if(!exists) selectedId = items[0].id;
+
+      highlightActive();
+    }
+
+    function selectEvent(id) {
+      selectedId = id;
+      const ev = events.find(e => e.id === id);
+      const view = document.getElementById("details-view");
+      const badge = document.getElementById("selected-badge");
+
+      if(!ev){
+        badge.textContent = "—";
+        view.innerHTML = "<h2>Keine Station ausgewählt</h2><p class='meta-line'>Wähle links eine Station aus.</p>";
+        fillFormForEvent(null);
+        highlightActive();
+        return;
+      }
+
+      badge.textContent = (mode === "book" ? "Buch #" : "Chrono #") + (currentOrderValue(ev) || "—");
+
+      const topics = splitTopics(ev.topics);
+      const topicsHtml = topics.length
+        ? `<div class="topic-badges">${topics.map(t => `<span class="topic">${escapeHtml(t)}</span>`).join("")}</div>`
+        : "";
+
+      view.innerHTML = `
+        <h2>${escapeHtml(ev.label || "(ohne Titel)")}</h2>
+        <p class="meta-line">
+          <strong>Zeit/Abschnitt:</strong> ${escapeHtml(ev.time || "—")}
+          &nbsp;•&nbsp;
+          <strong>Chronologie:</strong> ${escapeHtml(String(ev.storyOrder ?? "—"))}
+          &nbsp;•&nbsp;
+          <strong>Im Buch:</strong> ${escapeHtml(String(ev.bookOrder ?? "—"))}
+        </p>
+
+        <p><strong>Inhalt:</strong><br>${escapeHtml(ev.description || "—")}</p>
+        <p><strong>Interpretation:</strong><br>${escapeHtml(ev.interpretation || "—")}</p>
+        ${topicsHtml}
+      `;
+
+      fillFormForEvent(ev);
+      highlightActive();
+    }
+
+    function highlightActive() {
+      document.querySelectorAll(".timeline-item").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.id === String(selectedId));
+      });
+    }
+
+    function fillFormForEvent(ev) {
+      document.getElementById("event-id").value = ev ? ev.id : "";
+      document.getElementById("form-storyOrder").value = ev && ev.storyOrder != null ? ev.storyOrder : "";
+      document.getElementById("form-bookOrder").value = ev && ev.bookOrder != null ? ev.bookOrder : "";
+      document.getElementById("form-time").value = ev ? (ev.time || "") : "";
+      document.getElementById("form-label").value = ev ? (ev.label || "") : "";
+      document.getElementById("form-description").value = ev ? (ev.description || "") : "";
+      document.getElementById("form-interpretation").value = ev ? (ev.interpretation || "") : "";
+      document.getElementById("form-topics").value = ev ? (ev.topics || "") : "";
+    }
+
+    function clearFormForNew() {
+      selectedId = null;
+      document.getElementById("event-id").value = "";
+      document.getElementById("form-storyOrder").value = events.length + 1;
+      document.getElementById("form-bookOrder").value = events.length + 1;
+      document.getElementById("form-time").value = "";
+      document.getElementById("form-label").value = "";
+      document.getElementById("form-description").value = "";
+      document.getElementById("form-interpretation").value = "";
+      document.getElementById("form-topics").value = "";
+      highlightActive();
+      document.getElementById("selected-badge").textContent = "Neue Station";
+    }
+
+    // =========================
+    // 5) EDIT LOCK
+    // =========================
+    function applyEditLock(){
+      const locked = !isUnlocked();
+      const form = document.getElementById("edit-form");
+
+      // disable all inputs except code input
+      form.querySelectorAll("input, textarea, button").forEach(el => {
+        // code-related buttons are outside form; here we disable form controls
+        // allow submit button too when unlocked only
+        if(el.id === "event-id") return;
+        el.disabled = locked;
+      });
+
+      // export is always allowed, but reset only with code
+      document.getElementById("reset-btn").disabled = locked;
+
+      // status text
+      document.getElementById("edit-status").textContent = locked ? "Nur ansehen (gesperrt)" : "Bearbeiten erlaubt";
+      document.getElementById("mode-label").textContent = modeLabel();
+    }
+
+    function updateLockUI(){
+      const unlocked = isUnlocked();
+      const lockHint = document.getElementById("lock-hint");
+      const unlockBtn = document.getElementById("unlock-btn");
+      const lockBtn = document.getElementById("lock-btn");
+      const codeInput = document.getElementById("code-input");
+
+      if(unlocked){
+        lockHint.textContent = "Freigeschaltet (Session)";
+        unlockBtn.style.display = "none";
+        codeInput.style.display = "none";
+        lockBtn.style.display = "inline-block";
+      } else {
+        lockHint.textContent = "Nur ansehen";
+        unlockBtn.style.display = "inline-block";
+        codeInput.style.display = "inline-block";
+        lockBtn.style.display = "none";
+      }
+    }
+
+    // =========================
+    // 6) EVENTS
+    // =========================
+    document.getElementById("mode-story").addEventListener("click", () => {
+      mode = "story";
+      document.getElementById("mode-story").classList.add("active");
+      document.getElementById("mode-book").classList.remove("active");
+      document.getElementById("mode-label").textContent = modeLabel();
+      renderTimeline();
+      if(selectedId) selectEvent(selectedId);
+    });
+
+    document.getElementById("mode-book").addEventListener("click", () => {
+      mode = "book";
+      document.getElementById("mode-book").classList.add("active");
+      document.getElementById("mode-story").classList.remove("active");
+      document.getElementById("mode-label").textContent = modeLabel();
+      renderTimeline();
+      if(selectedId) selectEvent(selectedId);
+    });
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      query = e.target.value || "";
+      renderTimeline();
+      if(selectedId) selectEvent(selectedId);
+    });
+
+    document.getElementById("unlock-btn").addEventListener("click", () => {
+      const val = String(document.getElementById("code-input").value || "").trim();
+      if(val === "1987"){
+        setUnlocked(true);
+        document.getElementById("code-input").value = "";
+      } else {
+        alert("Falscher Code.");
+      }
+    });
+
+    document.getElementById("lock-btn").addEventListener("click", () => {
+      setUnlocked(false);
+    });
+
+    document.getElementById("edit-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if(!isUnlocked()) return;
+
+      const idField = document.getElementById("event-id");
+      const id = idField.value || ("e_" + Date.now());
+
+      const storyOrderVal = Number(document.getElementById("form-storyOrder").value);
+      const bookOrderVal  = Number(document.getElementById("form-bookOrder").value);
+
+      const storyOrder = isNaN(storyOrderVal) ? (events.length + 1) : storyOrderVal;
+      const bookOrder  = isNaN(bookOrderVal)  ? (events.length + 1) : bookOrderVal;
+
+      const time = document.getElementById("form-time").value.trim();
+      const label = document.getElementById("form-label").value.trim();
+      const description = document.getElementById("form-description").value.trim();
+      const interpretation = document.getElementById("form-interpretation").value.trim();
+      const topics = document.getElementById("form-topics").value.trim();
+
+      let ev = events.find(x => x.id === id);
+      if(!ev){
+        ev = { id };
+        events.push(ev);
+      }
+
+      ev.storyOrder = storyOrder;
+      ev.bookOrder = bookOrder;
+      ev.time = time;
+      ev.label = label;
+      ev.description = description;
+      ev.interpretation = interpretation;
+      ev.topics = topics;
+
+      selectedId = id;
+      saveEvents();
+      renderTimeline();
+      selectEvent(id);
+    });
+
+    document.getElementById("new-btn").addEventListener("click", function () {
+      if(!isUnlocked()) return;
+      clearFormForNew();
+      document.getElementById("details-view").innerHTML =
+        "<h2>Neue Station erstellen</h2><p class='meta-line'>Fülle rechts die Felder aus und klicke auf „Speichern“.</p>";
+    });
+
+    document.getElementById("delete-btn").addEventListener("click", function () {
+      if(!isUnlocked()) return;
+      if (!selectedId) return;
+      if (!confirm("Willst du diese Station wirklich löschen?")) return;
+
+      events = events.filter(e => e.id !== selectedId);
+      selectedId = null;
+
+      saveEvents();
+      renderTimeline();
+
+      document.getElementById("details-view").innerHTML =
+        "<h2>Station gelöscht</h2><p class='meta-line'>Wähle links eine andere Station oder erstelle rechts eine neue.</p>";
+      clearFormForNew();
+    });
+
+    document.getElementById("export-btn").addEventListener("click", function () {
+      const area = document.getElementById("export-area");
+      area.value = JSON.stringify(events, null, 2);
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", function () {
+      if(!isUnlocked()) return;
+      if (!confirm("Wirklich auf Original zurücksetzen? Alle Änderungen gehen verloren.")) return;
+
+      events = normalizeEvents(deepCopy(defaultEvents));
+      selectedId = null;
+
+      saveEvents();
+      renderTimeline();
+
+      document.getElementById("export-area").value = "";
+      document.getElementById("details-view").innerHTML =
+        "<h2>Original wiederhergestellt</h2><p class='meta-line'>Wähle links eine Station aus.</p>";
+      clearFormForNew();
+    });
+
+    // =========================
+    // 7) INIT
+    // =========================
+    window.addEventListener("DOMContentLoaded", function () {
+      loadEvents();
+
+      // default selection
+      if(events.length) selectedId = events[0].id;
+
+      updateLockUI();
+      applyEditLock();
+      renderTimeline();
+      if(selectedId) selectEvent(selectedId);
+    });
+  </script>
+</body>
+</html>
