@@ -6,370 +6,270 @@
   <title>Interaktiver Zeitstrahl – Die Judenbuche</title>
   <style>
     :root{
-      --bg: #f6f7fb;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --accent: #2563eb;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --accent:#2563eb;
       --accent2:#0ea5e9;
       --danger:#dc2626;
-      --shadow: 0 10px 25px rgba(17,24,39,.08);
-      --radius: 18px;
+      --shadow:0 12px 30px rgba(17,24,39,.08);
+      --radius:18px;
     }
-
-    *{ box-sizing:border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     body{
       margin:0;
-      background: radial-gradient(1200px 400px at 15% 0%, rgba(37,99,235,.14), transparent 60%),
-                  radial-gradient(900px 350px at 90% 10%, rgba(14,165,233,.12), transparent 60%),
-                  var(--bg);
+      padding:18px;
       color:var(--text);
-      padding: 18px;
+      background:
+        radial-gradient(1200px 420px at 15% 0%, rgba(37,99,235,.14), transparent 60%),
+        radial-gradient(900px 360px at 90% 10%, rgba(14,165,233,.12), transparent 60%),
+        var(--bg);
     }
-
-    .container{ max-width: 1100px; margin: 0 auto; }
-
+    .container{max-width:1100px;margin:0 auto}
     header{
-      background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(14,165,233,.10));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 18px 14px;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
+      background:linear-gradient(135deg, rgba(37,99,235,.10), rgba(14,165,233,.10));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:18px 18px 14px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
     }
-
-    h1{ margin:0; font-size: 1.35rem; letter-spacing: .2px; }
-    .subtitle{ margin:6px 0 0; color: var(--muted); font-size:.95rem; line-height:1.35; }
-
-    .topbar{
-      margin-top: 12px;
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .pillrow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .chip{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.75);
-      color: var(--text);
-      font-size: .85rem;
-      box-shadow: 0 1px 0 rgba(0,0,0,.02);
-    }
-    .chip strong{ font-weight: 700; }
-    .dot{
-      width:10px;height:10px;border-radius:999px;background:var(--accent);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
-    }
+    h1{margin:0;font-size:1.35rem;letter-spacing:.2px}
+    .subtitle{margin:6px 0 0;color:var(--muted);font-size:.95rem;line-height:1.35}
 
     .layout{
       display:grid;
-      grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns:minmax(260px,360px) minmax(0,1fr);
+      gap:14px;
       align-items:start;
     }
+    @media (max-width: 880px){ .layout{grid-template-columns:1fr} }
 
     .card{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       overflow:hidden;
     }
-
     .card-header{
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
       display:flex;
       align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,1));
+      justify-content:space-between;
+      gap:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,1));
     }
-
     .card-title{
       margin:0;
-      font-size: .95rem;
-      color: #111827;
+      font-size:.95rem;
       display:flex;
       gap:10px;
       align-items:center;
+      font-weight:800;
     }
-
-    .card-title .icon{
-      width: 28px; height: 28px; border-radius: 10px;
-      background: rgba(37,99,235,.10);
-      border: 1px solid rgba(37,99,235,.18);
-      display:grid; place-items:center;
-      color: var(--accent);
-      font-weight: 800;
-      font-size: .9rem;
+    .icon{
+      width:28px;height:28px;border-radius:10px;
+      background:rgba(37,99,235,.10);
+      border:1px solid rgba(37,99,235,.18);
+      display:grid;place-items:center;
+      color:var(--accent);
+      font-weight:900;
+      font-size:.9rem;
     }
-
-    .card-body{ padding: 12px 14px; }
-
-    /* Timeline list */
-    .timeline-tools{
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-    }
-
-    .search{
-      display:flex; gap: 10px; align-items:center;
+    .badge{
+      font-size:.74rem;
+      padding:3px 10px;
+      border-radius:999px;
       border:1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 10px;
-      background: rgba(255,255,255,.85);
+      background:rgba(255,255,255,.75);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .card-body{padding:12px 14px}
+
+    /* Search */
+    .search{
+      display:flex;gap:10px;align-items:center;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 10px;
+      background:rgba(255,255,255,.85);
+      margin-bottom:10px;
     }
     .search input{
       width:100%;
       border:none;
       outline:none;
-      background: transparent;
-      font-size: .9rem;
-      color: var(--text);
+      background:transparent;
+      font-size:.9rem;
+      color:var(--text);
     }
-    .search .mag{
-      width: 28px; height: 28px; border-radius: 10px;
-      display:grid; place-items:center;
-      background: rgba(14,165,233,.10);
+    .mag{
+      width:28px;height:28px;border-radius:10px;
+      display:grid;place-items:center;
+      background:rgba(14,165,233,.10);
       border:1px solid rgba(14,165,233,.18);
-      color: var(--accent2);
-      font-weight: 800;
+      color:var(--accent2);
+      font-weight:900;
     }
 
-    .toggle{
-      display:flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items:center;
-      justify-content:flex-start;
-    }
-
-    .seg{
-      display:inline-flex;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.85);
-      border-radius: 999px;
-      overflow:hidden;
-      box-shadow: 0 1px 0 rgba(0,0,0,.02);
-    }
-    .seg button{
-      border:none;
-      padding: 8px 12px;
-      cursor:pointer;
-      background: transparent;
-      font-size: .84rem;
-      color: var(--muted);
-      white-space:nowrap;
-    }
-    .seg button.active{
-      background: rgba(37,99,235,.12);
-      color: var(--accent);
-      font-weight: 700;
-    }
-
+    /* Timeline */
     .timeline-list{
-      max-height: 74vh;
+      max-height:74vh;
       overflow:auto;
-      padding: 8px 8px 10px;
+      padding:4px 4px 8px;
     }
+    @media (max-width:880px){ .timeline-list{max-height:none} }
 
     .timeline-item{
-      width: 100%;
+      width:100%;
       text-align:left;
       border:none;
       cursor:pointer;
-      background: transparent;
-      padding: 10px 10px 10px 12px;
-      border-radius: 14px;
-      position: relative;
-      transition: transform .06s ease, background .12s ease;
+      background:transparent;
+      padding:10px 10px 10px 12px;
+      border-radius:14px;
+      transition:transform .06s ease, background .12s ease;
       display:flex;
-      gap: 10px;
+      gap:10px;
       align-items:flex-start;
     }
-
-    .timeline-item:hover{ background: rgba(17,24,39,.04); }
-    .timeline-item:active{ transform: scale(.99); }
-
+    .timeline-item:hover{background:rgba(17,24,39,.04)}
+    .timeline-item:active{transform:scale(.99)}
     .marker{
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      margin-top: 4px;
-      background: #9ca3af;
-      flex: 0 0 auto;
-      box-shadow: 0 0 0 5px rgba(156,163,175,.14);
+      width:12px;height:12px;border-radius:999px;margin-top:4px;
+      background:#9ca3af;
+      flex:0 0 auto;
+      box-shadow:0 0 0 5px rgba(156,163,175,.14);
     }
-
-    .timeline-item.active{
-      background: rgba(37,99,235,.10);
-    }
+    .timeline-item.active{background:rgba(37,99,235,.10)}
     .timeline-item.active .marker{
-      background: var(--accent);
-      box-shadow: 0 0 0 6px rgba(37,99,235,.18);
+      background:var(--accent);
+      box-shadow:0 0 0 6px rgba(37,99,235,.18);
     }
-
-    .ttext{ min-width:0; }
+    .ttext{min-width:0}
     .timeline-label{
       margin:0;
-      font-size: .92rem;
-      font-weight: 750;
+      font-size:.92rem;
+      font-weight:800;
       line-height:1.15;
     }
     .timeline-time{
-      margin-top: 3px;
-      font-size: .78rem;
-      color: var(--muted);
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
-    .badge{
-      font-size:.74rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.75);
-      color: var(--muted);
+      margin-top:3px;
+      font-size:.78rem;
+      color:var(--muted);
+      display:flex;gap:8px;flex-wrap:wrap;
     }
 
     /* Details */
-    .details h2{
-      margin:0 0 6px;
-      font-size: 1.15rem;
-      letter-spacing:.2px;
-    }
-    .meta-line{
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: .86rem;
-      line-height:1.35;
-    }
-    .details p{
-      margin: 10px 0 0;
-      line-height: 1.45;
-      font-size: .92rem;
-    }
-
-    .topic-badges{
-      margin-top: 10px;
-      display:flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .details h2{margin:0 0 6px;font-size:1.15rem;letter-spacing:.2px}
+    .meta-line{margin:4px 0 0;color:var(--muted);font-size:.86rem;line-height:1.35}
+    .details p{margin:10px 0 0;line-height:1.45;font-size:.92rem}
+    .topic-badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
     .topic{
-      font-size: .78rem;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(37,99,235,.18);
-      background: rgba(37,99,235,.08);
-      color: #1f3f96;
-    }
-
-    hr{
-      border:none;
-      border-top: 1px solid var(--border);
-      margin: 14px 0;
-    }
-
-    .section-title{
-      margin: 0 0 10px;
       font-size:.78rem;
-      letter-spacing: .10em;
-      color: #374151;
-      text-transform: uppercase;
-      font-weight: 800;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(37,99,235,.18);
+      background:rgba(37,99,235,.08);
+      color:#1f3f96;
     }
 
-    form label{
-      display:block;
-      font-weight: 700;
-      font-size: .84rem;
-      margin: 10px 0 6px;
-      color: #111827;
+    /* Floating edit button */
+    .fab{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      border:none;
+      border-radius:999px;
+      padding:12px 14px;
+      font-size:.9rem;
+      font-weight:900;
+      cursor:pointer;
+      background:var(--accent);
+      color:#fff;
+      box-shadow:0 18px 40px rgba(37,99,235,.25);
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .fab:active{transform:translateY(1px)}
+    .fab .mini{
+      width:28px;height:28px;border-radius:999px;
+      background:rgba(255,255,255,.20);
+      display:grid;place-items:center;
+      font-weight:900;
     }
 
-    input[type="text"], input[type="number"], textarea{
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(17,24,39,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 30px 70px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .modal-head{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center;
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,1));
+    }
+    .modal-head strong{font-size:.95rem}
+    .modal-body{padding:14px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:540px){ .row2{grid-template-columns:1fr} }
+
+    label{display:block;font-weight:800;font-size:.84rem;margin:10px 0 6px}
+    input[type="text"], input[type="number"], input[type="password"], textarea{
       width:100%;
       border:1px solid var(--border);
-      background: rgba(255,255,255,.90);
-      border-radius: 12px;
-      padding: 10px 10px;
-      font-size: .9rem;
+      background:rgba(255,255,255,.95);
+      border-radius:12px;
+      padding:10px 10px;
+      font-size:.9rem;
       outline:none;
     }
-    textarea{ min-height: 86px; resize: vertical; }
+    textarea{min-height:86px;resize:vertical}
 
-    .row2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    @media (max-width: 880px){
-      .layout{ grid-template-columns: 1fr; }
-      .timeline-list{ max-height: none; }
-      .row2{ grid-template-columns: 1fr; }
-    }
-
-    .hint{ margin-top: 6px; color: var(--muted); font-size: .78rem; }
-
-    .btnrow{ display:flex; gap: 10px; flex-wrap:wrap; margin-top: 12px; }
-
-    button, .btn{
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
       border:none;
       cursor:pointer;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: .86rem;
-      font-weight: 750;
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:.86rem;
+      font-weight:900;
     }
+    .primary{background:var(--accent);color:#fff}
+    .secondary{background:rgba(17,24,39,.06);color:#111827;border:1px solid var(--border)}
+    .danger{background:var(--danger);color:#fff}
+    .hint{color:var(--muted);font-size:.78rem;margin-top:8px}
 
-    .primary{ background: var(--accent); color:#fff; }
-    .secondary{ background: rgba(17,24,39,.06); color:#111827; border:1px solid var(--border); }
-    .danger{ background: var(--danger); color:#fff; }
-    button:disabled{ opacity: .55; cursor: not-allowed; }
-
-    .lockbar{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border: 1px dashed rgba(37,99,235,.35);
-      background: rgba(37,99,235,.08);
-      border-radius: 14px;
-      margin-bottom: 10px;
-    }
-    .lockbar .left{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      color: #1f3f96;
-      font-weight: 700;
-      font-size: .86rem;
-    }
-    .lockbar input{
-      width: 120px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(37,99,235,.25);
-      background: rgba(255,255,255,.9);
-    }
+    hr{border:none;border-top:1px solid var(--border);margin:14px 0}
 
     /* Export card */
-    .export-area{
+    .mono{
       width:100%;
-      min-height: 140px;
+      min-height:130px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: .8rem;
-      line-height: 1.35;
+      font-size:.8rem;
+      line-height:1.35;
     }
   </style>
 </head>
@@ -378,159 +278,144 @@
     <header>
       <h1>Interaktiver Zeitstrahl – „Die Judenbuche“</h1>
       <p class="subtitle">
-        Links: Zeitstrahl nach <strong>Handlungs-Chronologie</strong> oder <strong>Buch-Reihenfolge</strong>.
-        Rechts: Inhalte ansehen. Bearbeiten ist nur mit Code möglich.
+        Klicke links auf eine Station, um Inhalt & Interpretation zu sehen.
+        Standardmäßig ist alles <strong>nur zum Anschauen</strong>.
       </p>
-
-      <div class="topbar">
-        <div class="pillrow">
-          <span class="chip"><span class="dot"></span><strong>Ansicht:</strong> <span id="mode-label">Handlungs-Chronologie</span></span>
-          <span class="chip"><strong>Status:</strong> <span id="edit-status">Nur ansehen (gesperrt)</span></span>
-        </div>
-
-        <div class="seg" aria-label="Ansicht umschalten">
-          <button id="mode-story" class="active" type="button">Chronologie</button>
-          <button id="mode-book" type="button">Im Buch</button>
-        </div>
-      </div>
     </header>
 
     <div class="layout">
       <!-- LEFT: LIST -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="icon">≡</span>
-            <span>Stationen</span>
-          </div>
+          <div class="card-title"><span class="icon">≡</span><span>Stationen</span></div>
           <span class="badge" id="count-badge">0</span>
         </div>
-        <div class="card-body timeline-tools">
+        <div class="card-body">
           <div class="search" role="search">
             <div class="mag">⌕</div>
             <input id="search" type="text" placeholder="Suchen (Titel, Zeit, Themen) …" />
           </div>
-
-          <div class="timeline-list" id="timeline-list">
-            <!-- JS -->
-          </div>
+          <div class="timeline-list" id="timeline-list"></div>
         </div>
       </div>
 
-      <!-- RIGHT: DETAILS + EDIT -->
+      <!-- RIGHT: DETAILS -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="icon">◎</span>
-            <span>Details & Bearbeitung</span>
-          </div>
+          <div class="card-title"><span class="icon">◎</span><span>Inhalt</span></div>
           <span class="badge" id="selected-badge">—</span>
         </div>
-
         <div class="card-body">
-          <!-- LOCK BAR -->
-          <div class="lockbar" id="lockbar">
-            <div class="left">
-              🔒 Bearbeiten gesperrt – Code eingeben:
-              <input id="code-input" type="password" inputmode="numeric" maxlength="10" placeholder="1987" />
-              <button class="primary" id="unlock-btn" type="button">Freischalten</button>
-              <button class="secondary" id="lock-btn" type="button" style="display:none;">Sperren</button>
-            </div>
-            <div class="badge" id="lock-hint">Nur ansehen</div>
-          </div>
-
           <div class="details" id="details-view">
             <h2>Wähle eine Station aus</h2>
-            <p class="meta-line">
-              Nutze links den Zeitstrahl. Du kannst oben zwischen Chronologie und Buch-Reihenfolge wechseln.
-            </p>
+            <p class="meta-line">Links siehst du die Reihenfolge der Handlung. Klicke eine Station an.</p>
           </div>
 
           <hr />
 
+          <!-- EXPORT (nur ansehen, kein reset ohne editor) -->
           <div>
-            <div class="section-title">Station bearbeiten oder neu anlegen</div>
-
-            <form id="edit-form">
-              <input type="hidden" id="event-id" />
-
-              <div class="row2">
-                <div>
-                  <label for="form-storyOrder">Position – Chronologie</label>
-                  <input type="number" id="form-storyOrder" min="1" step="1" />
-                  <div class="hint">Kleine Zahl = früher in der Handlung.</div>
-                </div>
-                <div>
-                  <label for="form-bookOrder">Position – Buch-Reihenfolge</label>
-                  <input type="number" id="form-bookOrder" min="1" step="1" />
-                  <div class="hint">Kleine Zahl = früher im Buch.</div>
-                </div>
-              </div>
-
-              <label for="form-time">Zeit / Abschnitt</label>
-              <input type="text" id="form-time" placeholder="z. B. Kindheit, Mordnacht, Jahre später" />
-
-              <label for="form-label">Überschrift der Station</label>
-              <input type="text" id="form-label" placeholder="z. B. Friedrichs Kindheit im Dorf" />
-
-              <label for="form-description">Inhalt (was passiert?)</label>
-              <textarea id="form-description" placeholder="Kurz beschreiben, was geschieht."></textarea>
-
-              <label for="form-interpretation">Interpretation (Bedeutung / Analyse)</label>
-              <textarea id="form-interpretation" placeholder="Bedeutung, Motive, Aussagen …"></textarea>
-
-              <label for="form-topics">Themen / Motive (Kommagetrennt)</label>
-              <input type="text" id="form-topics" placeholder="z. B. Schuld, sozialer Druck, Gewalt, Religion" />
-
-              <div class="btnrow">
-                <button type="submit" class="primary" id="save-btn">Speichern</button>
-                <button type="button" class="secondary" id="new-btn">Neue Station</button>
-                <button type="button" class="danger" id="delete-btn">Station löschen</button>
-              </div>
-
-              <div class="hint" id="edit-hint">
-                Tipp: Ohne Code ist alles nur „Ansehen“. Code: <strong>1987</strong>
-              </div>
-            </form>
+            <div class="card-header" style="padding:0 0 10px;border:none;background:none;">
+              <div class="card-title" style="font-size:.9rem;"><span class="icon">⇩</span><span>Export</span></div>
+            </div>
+            <p class="meta-line" style="margin-top:0;">
+              Du kannst die Daten als JSON anzeigen (z. B. sichern/kopieren).
+            </p>
+            <div class="btnrow">
+              <button class="btn secondary" id="export-btn" type="button">Daten als JSON anzeigen</button>
+            </div>
+            <textarea id="export-area" class="mono" placeholder="Hier erscheinen die exportierten Daten…" readonly></textarea>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- EXPORT -->
-    <div class="card" style="margin-top:14px;">
-      <div class="card-header">
-        <div class="card-title">
-          <span class="icon">⇩</span>
-          <span>Export & Zurücksetzen</span>
-        </div>
+  <!-- Floating button -->
+  <button class="fab" id="open-editor" type="button" aria-label="Bearbeiten öffnen">
+    <span class="mini">✎</span> Bearbeiten
+  </button>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <strong id="modal-title">Bearbeiten (Passwort erforderlich)</strong>
+        <button class="btn secondary" id="close-modal" type="button">Schließen</button>
       </div>
-      <div class="card-body">
-        <p class="meta-line" style="margin-top:0;">
-          Export zeigt deine Daten als JSON (z. B. sichern/kopieren). Zurücksetzen lädt die Original-Version.
-          <strong>Bearbeiten/Zurücksetzen ist nur mit Code möglich.</strong>
-        </p>
-
-        <div class="btnrow">
-          <button class="secondary" id="export-btn" type="button">Daten als JSON anzeigen</button>
-          <button class="danger" id="reset-btn" type="button">Auf Original zurücksetzen</button>
+      <div class="modal-body">
+        <!-- STEP 1: PASSWORD -->
+        <div id="pw-step">
+          <label for="pw">Passwort</label>
+          <input id="pw" type="password" placeholder="Passwort eingeben" autocomplete="off" />
+          <div class="btnrow">
+            <button class="btn primary" id="pw-confirm" type="button">OK</button>
+          </div>
+          <div class="hint" id="pw-hint">Nur mit Passwort kann man Inhalte speichern/löschen.</div>
         </div>
 
-        <textarea id="export-area" class="export-area" placeholder="Hier erscheinen die exportierten Daten…" readonly></textarea>
+        <!-- STEP 2: EDITOR (wird erst nach richtigem Passwort gezeigt) -->
+        <div id="editor-step" style="display:none;">
+          <div class="hint" style="margin-top:0;">
+            Editor freigeschaltet. Änderungen werden im Browser gespeichert (localStorage).
+          </div>
+
+          <hr />
+
+          <form id="edit-form">
+            <input type="hidden" id="event-id" />
+
+            <div class="row2">
+              <div>
+                <label for="form-order">Position im Zeitstrahl</label>
+                <input type="number" id="form-order" min="1" step="1" />
+                <div class="hint">Kleine Zahl = weiter oben / früher.</div>
+              </div>
+              <div>
+                <label for="form-time">Zeit / Abschnitt</label>
+                <input type="text" id="form-time" placeholder="z. B. Kindheit, Mordnacht, Jahre später" />
+              </div>
+            </div>
+
+            <label for="form-label">Überschrift der Station</label>
+            <input type="text" id="form-label" placeholder="z. B. Friedrichs Kindheit im Dorf" />
+
+            <label for="form-description">Inhalt (was passiert?)</label>
+            <textarea id="form-description" placeholder="Kurz beschreiben, was geschieht."></textarea>
+
+            <label for="form-interpretation">Interpretation (Bedeutung / Analyse)</label>
+            <textarea id="form-interpretation" placeholder="Bedeutung, Motive, Aussagen …"></textarea>
+
+            <label for="form-topics">Themen / Motive (Kommagetrennt)</label>
+            <input type="text" id="form-topics" placeholder="z. B. Schuld, sozialer Druck, Gewalt, Religion" />
+
+            <div class="btnrow">
+              <button class="btn primary" type="submit">Speichern</button>
+              <button class="btn secondary" id="new-btn" type="button">Neue Station</button>
+              <button class="btn danger" id="delete-btn" type="button">Station löschen</button>
+            </div>
+          </form>
+
+          <hr />
+
+          <div>
+            <div class="hint" style="margin-top:0;"><strong>Gefährlich:</strong> Zurücksetzen löscht alle eigenen Änderungen.</div>
+            <div class="btnrow">
+              <button class="btn danger" id="reset-btn" type="button">Auf Original zurücksetzen</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
   <script>
-    // =========================
-    // 1) DEFAULT EVENTS (inhaltlich unverändert)
-    //    NEU: storyOrder & bookOrder
-    // =========================
+    // --- Originaldaten (inhaltlich unverändert) ---
     const defaultEvents = [
       {
         id: "k1",
-        storyOrder: 1,
-        bookOrder: 1,
+        order: 1,
         time: "Vor Friedrichs Geburt / Vorgeschichte",
         label: "Hermann Mergel, Armut und Gewalt",
         description:
@@ -541,8 +426,7 @@
       },
       {
         id: "k2",
-        storyOrder: 2,
-        bookOrder: 2,
+        order: 2,
         time: "Friedrichs Kindheit",
         label: "Friedrich zwischen Pastor M. und Johannes Niemand",
         description:
@@ -553,8 +437,7 @@
       },
       {
         id: "k3",
-        storyOrder: 3,
-        bookOrder: 3,
+        order: 3,
         time: "Junge Erwachsenenjahre",
         label: "Wald, Holzfrevel und soziales Klima",
         description:
@@ -565,8 +448,7 @@
       },
       {
         id: "k4",
-        storyOrder: 4,
-        bookOrder: 4,
+        order: 4,
         time: "Zeit vor dem Mord",
         label: "Konflikte mit dem Juden Aaron",
         description:
@@ -577,8 +459,7 @@
       },
       {
         id: "k5",
-        storyOrder: 5,
-        bookOrder: 5,
+        order: 5,
         time: "Mordnacht",
         label: "Der Mord an Aaron im Wald",
         description:
@@ -589,8 +470,7 @@
       },
       {
         id: "k6",
-        storyOrder: 6,
-        bookOrder: 6,
+        order: 6,
         time: "Unmittelbar nach dem Mord",
         label: "Verdacht, Verhör und Friedrichs Flucht",
         description:
@@ -601,8 +481,7 @@
       },
       {
         id: "k7",
-        storyOrder: 7,
-        bookOrder: 7,
+        order: 7,
         time: "Viele Jahre später",
         label: "Rückkehr des Fremden",
         description:
@@ -613,8 +492,7 @@
       },
       {
         id: "k8",
-        storyOrder: 8,
-        bookOrder: 8,
+        order: 8,
         time: "Nach der Rückkehr",
         label: "Verhöre und erneute Gerichtsverfahren",
         description:
@@ -625,8 +503,7 @@
       },
       {
         id: "k9",
-        storyOrder: 9,
-        bookOrder: 9,
+        order: 9,
         time: "Schlussszene",
         label: "Friedrichs Tod an der Judenbuche",
         description:
@@ -637,8 +514,7 @@
       },
       {
         id: "k10",
-        storyOrder: 10,
-        bookOrder: 10,
+        order: 10,
         time: "Rahmen / Erzähler",
         label: "Rahmenerzählung und historische Einbettung",
         description:
@@ -649,20 +525,11 @@
       }
     ];
 
-    // =========================
-    // 2) STORAGE + STATE
-    // =========================
-    const STORAGE_KEY = "judenbucheTimeline_v2";
-    const EDIT_UNLOCK_KEY = "judenbucheEditUnlocked_session";
-
+    const STORAGE_KEY = "judenbucheTimeline_viewOnly";
     let events = [];
     let selectedId = null;
-    let mode = "story"; // "story" or "book"
     let query = "";
 
-    // =========================
-    // 3) HELPERS
-    // =========================
     function deepCopy(x){ return JSON.parse(JSON.stringify(x)); }
 
     function escapeHtml(str) {
@@ -680,93 +547,45 @@
       return raw.split(",").map(s => s.trim()).filter(Boolean);
     }
 
-    function isUnlocked(){
-      return sessionStorage.getItem(EDIT_UNLOCK_KEY) === "1";
-    }
-
-    function setUnlocked(val){
-      if(val) sessionStorage.setItem(EDIT_UNLOCK_KEY, "1");
-      else sessionStorage.removeItem(EDIT_UNLOCK_KEY);
-      updateLockUI();
-      applyEditLock();
-    }
-
-    function normalizeEvents(arr){
-      // Migration: alte Daten hatten "order" statt storyOrder und kein bookOrder
-      return arr.map(ev => {
-        const copy = { ...ev };
-
-        // Falls altes Feld "order" existiert:
-        if (copy.storyOrder == null && copy.order != null) {
-          copy.storyOrder = copy.order;
-        }
-
-        // Wenn bookOrder fehlt: setze gleich storyOrder
-        if (copy.bookOrder == null) {
-          copy.bookOrder = copy.storyOrder != null ? copy.storyOrder : 9999;
-        }
-
-        // optional: altes Feld entfernen (nicht zwingend)
-        // delete copy.order;
-
-        return copy;
-      });
-    }
-
     function loadEvents() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
-            events = normalizeEvents(parsed);
+            events = parsed;
             return;
           }
         } catch (e) {
           console.warn("Konnte gespeicherte Daten nicht laden, verwende Standarddaten.", e);
         }
       }
-      events = normalizeEvents(deepCopy(defaultEvents));
+      events = deepCopy(defaultEvents);
     }
 
     function saveEvents() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     }
 
-    function currentOrderValue(ev){
-      if(mode === "book") return Number(ev.bookOrder ?? 9999);
-      return Number(ev.storyOrder ?? 9999);
-    }
-
-    function modeLabel(){
-      return mode === "book" ? "Buch-Reihenfolge" : "Handlungs-Chronologie";
-    }
-
     function filteredAndSortedEvents(){
       const q = query.trim().toLowerCase();
       let list = [...events];
-
       if(q){
         list = list.filter(ev => {
-          const hay = [
-            ev.label, ev.time, ev.topics, ev.description, ev.interpretation
-          ].join(" ").toLowerCase();
+          const hay = [ev.label, ev.time, ev.topics, ev.description, ev.interpretation]
+            .join(" ")
+            .toLowerCase();
           return hay.includes(q);
         });
       }
-
-      list.sort((a,b) => currentOrderValue(a) - currentOrderValue(b));
+      list.sort((a,b) => (a.order||0)-(b.order||0));
       return list;
     }
 
-    // =========================
-    // 4) RENDER
-    // =========================
     function renderTimeline() {
       const list = document.getElementById("timeline-list");
       const items = filteredAndSortedEvents();
       list.innerHTML = "";
-
       document.getElementById("count-badge").textContent = String(items.length);
 
       if(items.length === 0){
@@ -774,16 +593,16 @@
         empty.style.padding = "12px";
         empty.style.color = "#6b7280";
         empty.style.fontSize = ".9rem";
-        empty.textContent = "Keine Treffer. Suche anpassen oder neue Station erstellen (mit Code).";
+        empty.textContent = "Keine Treffer. Suche anpassen.";
         list.appendChild(empty);
         return;
       }
 
-      items.forEach((ev) => {
+      items.forEach(ev => {
         const btn = document.createElement("button");
         btn.className = "timeline-item";
         btn.dataset.id = ev.id;
-        if (ev.id === selectedId) btn.classList.add("active");
+        if(ev.id === selectedId) btn.classList.add("active");
 
         const marker = document.createElement("div");
         marker.className = "marker";
@@ -798,16 +617,16 @@
         const time = document.createElement("div");
         time.className = "timeline-time";
 
-        const badgeA = document.createElement("span");
-        badgeA.className = "badge";
-        badgeA.textContent = (mode === "book" ? "Buch #" : "Chrono #") + (currentOrderValue(ev) || "—");
+        const b1 = document.createElement("span");
+        b1.className = "badge";
+        b1.textContent = "Nr. " + (ev.order ?? "—");
 
-        const badgeB = document.createElement("span");
-        badgeB.className = "badge";
-        badgeB.textContent = ev.time ? ev.time : "—";
+        const b2 = document.createElement("span");
+        b2.className = "badge";
+        b2.textContent = ev.time ? ev.time : "—";
 
-        time.appendChild(badgeA);
-        time.appendChild(badgeB);
+        time.appendChild(b1);
+        time.appendChild(b2);
 
         ttext.appendChild(label);
         ttext.appendChild(time);
@@ -819,14 +638,13 @@
         list.appendChild(btn);
       });
 
-      // wenn selectedId gefiltert nicht sichtbar ist, nehme erstes
       const exists = items.some(e => e.id === selectedId);
       if(!exists) selectedId = items[0].id;
 
       highlightActive();
     }
 
-    function selectEvent(id) {
+    function selectEvent(id){
       selectedId = id;
       const ev = events.find(e => e.id === id);
       const view = document.getElementById("details-view");
@@ -835,12 +653,11 @@
       if(!ev){
         badge.textContent = "—";
         view.innerHTML = "<h2>Keine Station ausgewählt</h2><p class='meta-line'>Wähle links eine Station aus.</p>";
-        fillFormForEvent(null);
         highlightActive();
         return;
       }
 
-      badge.textContent = (mode === "book" ? "Buch #" : "Chrono #") + (currentOrderValue(ev) || "—");
+      badge.textContent = "Nr. " + (ev.order ?? "—");
 
       const topics = splitTopics(ev.topics);
       const topicsHtml = topics.length
@@ -849,33 +666,51 @@
 
       view.innerHTML = `
         <h2>${escapeHtml(ev.label || "(ohne Titel)")}</h2>
-        <p class="meta-line">
-          <strong>Zeit/Abschnitt:</strong> ${escapeHtml(ev.time || "—")}
-          &nbsp;•&nbsp;
-          <strong>Chronologie:</strong> ${escapeHtml(String(ev.storyOrder ?? "—"))}
-          &nbsp;•&nbsp;
-          <strong>Im Buch:</strong> ${escapeHtml(String(ev.bookOrder ?? "—"))}
-        </p>
-
+        <p class="meta-line"><strong>Zeit/Abschnitt:</strong> ${escapeHtml(ev.time || "—")}</p>
         <p><strong>Inhalt:</strong><br>${escapeHtml(ev.description || "—")}</p>
         <p><strong>Interpretation:</strong><br>${escapeHtml(ev.interpretation || "—")}</p>
         ${topicsHtml}
       `;
 
-      fillFormForEvent(ev);
       highlightActive();
     }
 
-    function highlightActive() {
+    function highlightActive(){
       document.querySelectorAll(".timeline-item").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.id === String(selectedId));
       });
     }
 
-    function fillFormForEvent(ev) {
+    // ===== Editor (nur im Modal sichtbar) =====
+    let editorUnlocked = false;
+
+    function openModal(){
+      const bd = document.getElementById("modal-backdrop");
+      bd.style.display = "flex";
+      bd.setAttribute("aria-hidden", "false");
+      document.getElementById("pw").focus();
+    }
+    function closeModal(){
+      const bd = document.getElementById("modal-backdrop");
+      bd.style.display = "none";
+      bd.setAttribute("aria-hidden", "true");
+      // reset pw field
+      document.getElementById("pw").value = "";
+    }
+
+    function showEditor(unlocked){
+      editorUnlocked = unlocked;
+      document.getElementById("pw-step").style.display = unlocked ? "none" : "block";
+      document.getElementById("editor-step").style.display = unlocked ? "block" : "none";
+      if(unlocked){
+        fillFormForSelected();
+      }
+    }
+
+    function fillFormForSelected(){
+      const ev = events.find(e => e.id === selectedId) || null;
       document.getElementById("event-id").value = ev ? ev.id : "";
-      document.getElementById("form-storyOrder").value = ev && ev.storyOrder != null ? ev.storyOrder : "";
-      document.getElementById("form-bookOrder").value = ev && ev.bookOrder != null ? ev.bookOrder : "";
+      document.getElementById("form-order").value = ev && ev.order != null ? ev.order : (events.length + 1);
       document.getElementById("form-time").value = ev ? (ev.time || "") : "";
       document.getElementById("form-label").value = ev ? (ev.label || "") : "";
       document.getElementById("form-description").value = ev ? (ev.description || "") : "";
@@ -883,116 +718,87 @@
       document.getElementById("form-topics").value = ev ? (ev.topics || "") : "";
     }
 
-    function clearFormForNew() {
+    function clearFormForNew(){
       selectedId = null;
       document.getElementById("event-id").value = "";
-      document.getElementById("form-storyOrder").value = events.length + 1;
-      document.getElementById("form-bookOrder").value = events.length + 1;
+      document.getElementById("form-order").value = events.length + 1;
       document.getElementById("form-time").value = "";
       document.getElementById("form-label").value = "";
       document.getElementById("form-description").value = "";
       document.getElementById("form-interpretation").value = "";
       document.getElementById("form-topics").value = "";
-      highlightActive();
       document.getElementById("selected-badge").textContent = "Neue Station";
-    }
-
-    // =========================
-    // 5) EDIT LOCK
-    // =========================
-    function applyEditLock(){
-      const locked = !isUnlocked();
-      const form = document.getElementById("edit-form");
-
-      // disable all inputs except code input
-      form.querySelectorAll("input, textarea, button").forEach(el => {
-        // code-related buttons are outside form; here we disable form controls
-        // allow submit button too when unlocked only
-        if(el.id === "event-id") return;
-        el.disabled = locked;
-      });
-
-      // export is always allowed, but reset only with code
-      document.getElementById("reset-btn").disabled = locked;
-
-      // status text
-      document.getElementById("edit-status").textContent = locked ? "Nur ansehen (gesperrt)" : "Bearbeiten erlaubt";
-      document.getElementById("mode-label").textContent = modeLabel();
-    }
-
-    function updateLockUI(){
-      const unlocked = isUnlocked();
-      const lockHint = document.getElementById("lock-hint");
-      const unlockBtn = document.getElementById("unlock-btn");
-      const lockBtn = document.getElementById("lock-btn");
-      const codeInput = document.getElementById("code-input");
-
-      if(unlocked){
-        lockHint.textContent = "Freigeschaltet (Session)";
-        unlockBtn.style.display = "none";
-        codeInput.style.display = "none";
-        lockBtn.style.display = "inline-block";
-      } else {
-        lockHint.textContent = "Nur ansehen";
-        unlockBtn.style.display = "inline-block";
-        codeInput.style.display = "inline-block";
-        lockBtn.style.display = "none";
-      }
-    }
-
-    // =========================
-    // 6) EVENTS
-    // =========================
-    document.getElementById("mode-story").addEventListener("click", () => {
-      mode = "story";
-      document.getElementById("mode-story").classList.add("active");
-      document.getElementById("mode-book").classList.remove("active");
-      document.getElementById("mode-label").textContent = modeLabel();
+      document.getElementById("details-view").innerHTML =
+        "<h2>Neue Station</h2><p class='meta-line'>Du erstellst eine neue Station (nur im Editor).</p>";
       renderTimeline();
-      if(selectedId) selectEvent(selectedId);
-    });
+      highlightActive();
+    }
 
-    document.getElementById("mode-book").addEventListener("click", () => {
-      mode = "book";
-      document.getElementById("mode-book").classList.add("active");
-      document.getElementById("mode-story").classList.remove("active");
-      document.getElementById("mode-label").textContent = modeLabel();
-      renderTimeline();
-      if(selectedId) selectEvent(selectedId);
-    });
-
+    // ===== Handlers =====
     document.getElementById("search").addEventListener("input", (e) => {
       query = e.target.value || "";
       renderTimeline();
       if(selectedId) selectEvent(selectedId);
     });
 
-    document.getElementById("unlock-btn").addEventListener("click", () => {
-      const val = String(document.getElementById("code-input").value || "").trim();
+    document.getElementById("export-btn").addEventListener("click", () => {
+      document.getElementById("export-area").value = JSON.stringify(events, null, 2);
+    });
+
+    document.getElementById("open-editor").addEventListener("click", () => {
+      openModal();
+      showEditor(false);
+    });
+
+    document.getElementById("close-modal").addEventListener("click", () => closeModal());
+
+    // close modal on backdrop click
+    document.getElementById("modal-backdrop").addEventListener("click", (e) => {
+      if(e.target.id === "modal-backdrop") closeModal();
+    });
+
+    // password confirm
+    document.getElementById("pw-confirm").addEventListener("click", () => {
+      const val = String(document.getElementById("pw").value || "").trim();
       if(val === "1987"){
-        setUnlocked(true);
-        document.getElementById("code-input").value = "";
+        showEditor(true);
       } else {
-        alert("Falscher Code.");
+        alert("Falsches Passwort.");
       }
     });
 
-    document.getElementById("lock-btn").addEventListener("click", () => {
-      setUnlocked(false);
+    // enter submits password
+    document.getElementById("pw").addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        document.getElementById("pw-confirm").click();
+      }
     });
 
-    document.getElementById("edit-form").addEventListener("submit", function (e) {
+    // when selecting event, update editor form if open+unlocked
+    function onSelectionChanged(){
+      if(editorUnlocked){
+        fillFormForSelected();
+      }
+    }
+
+    // Hook selection
+    const originalSelectEvent = selectEvent;
+    selectEvent = function(id){
+      originalSelectEvent(id);
+      onSelectionChanged();
+    };
+
+    // Editor form submit
+    document.getElementById("edit-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      if(!isUnlocked()) return;
+      if(!editorUnlocked) return;
 
       const idField = document.getElementById("event-id");
       const id = idField.value || ("e_" + Date.now());
 
-      const storyOrderVal = Number(document.getElementById("form-storyOrder").value);
-      const bookOrderVal  = Number(document.getElementById("form-bookOrder").value);
-
-      const storyOrder = isNaN(storyOrderVal) ? (events.length + 1) : storyOrderVal;
-      const bookOrder  = isNaN(bookOrderVal)  ? (events.length + 1) : bookOrderVal;
+      const orderVal = Number(document.getElementById("form-order").value);
+      const order = isNaN(orderVal) ? (events.length + 1) : orderVal;
 
       const time = document.getElementById("form-time").value.trim();
       const label = document.getElementById("form-label").value.trim();
@@ -1006,8 +812,7 @@
         events.push(ev);
       }
 
-      ev.storyOrder = storyOrder;
-      ev.bookOrder = bookOrder;
+      ev.order = order;
       ev.time = time;
       ev.label = label;
       ev.description = description;
@@ -1017,66 +822,47 @@
       selectedId = id;
       saveEvents();
       renderTimeline();
-      selectEvent(id);
+      originalSelectEvent(id);
+      alert("Gespeichert.");
     });
 
-    document.getElementById("new-btn").addEventListener("click", function () {
-      if(!isUnlocked()) return;
+    document.getElementById("new-btn").addEventListener("click", () => {
+      if(!editorUnlocked) return;
       clearFormForNew();
-      document.getElementById("details-view").innerHTML =
-        "<h2>Neue Station erstellen</h2><p class='meta-line'>Fülle rechts die Felder aus und klicke auf „Speichern“.</p>";
     });
 
-    document.getElementById("delete-btn").addEventListener("click", function () {
-      if(!isUnlocked()) return;
-      if (!selectedId) return;
-      if (!confirm("Willst du diese Station wirklich löschen?")) return;
+    document.getElementById("delete-btn").addEventListener("click", () => {
+      if(!editorUnlocked) return;
+      if(!selectedId) return;
+      if(!confirm("Willst du diese Station wirklich löschen?")) return;
 
       events = events.filter(e => e.id !== selectedId);
       selectedId = null;
-
       saveEvents();
       renderTimeline();
-
       document.getElementById("details-view").innerHTML =
-        "<h2>Station gelöscht</h2><p class='meta-line'>Wähle links eine andere Station oder erstelle rechts eine neue.</p>";
-      clearFormForNew();
+        "<h2>Station gelöscht</h2><p class='meta-line'>Wähle links eine andere Station aus.</p>";
+      fillFormForSelected();
     });
 
-    document.getElementById("export-btn").addEventListener("click", function () {
-      const area = document.getElementById("export-area");
-      area.value = JSON.stringify(events, null, 2);
-    });
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if(!editorUnlocked) return;
+      if(!confirm("Wirklich auf Original zurücksetzen? Alle Änderungen gehen verloren.")) return;
 
-    document.getElementById("reset-btn").addEventListener("click", function () {
-      if(!isUnlocked()) return;
-      if (!confirm("Wirklich auf Original zurücksetzen? Alle Änderungen gehen verloren.")) return;
-
-      events = normalizeEvents(deepCopy(defaultEvents));
-      selectedId = null;
-
+      events = deepCopy(defaultEvents);
+      selectedId = events.length ? events[0].id : null;
       saveEvents();
       renderTimeline();
-
-      document.getElementById("export-area").value = "";
-      document.getElementById("details-view").innerHTML =
-        "<h2>Original wiederhergestellt</h2><p class='meta-line'>Wähle links eine Station aus.</p>";
-      clearFormForNew();
+      if(selectedId) originalSelectEvent(selectedId);
+      alert("Zurückgesetzt.");
     });
 
-    // =========================
-    // 7) INIT
-    // =========================
-    window.addEventListener("DOMContentLoaded", function () {
+    // INIT
+    window.addEventListener("DOMContentLoaded", () => {
       loadEvents();
-
-      // default selection
       if(events.length) selectedId = events[0].id;
-
-      updateLockUI();
-      applyEditLock();
       renderTimeline();
-      if(selectedId) selectEvent(selectedId);
+      if(selectedId) originalSelectEvent(selectedId);
     });
   </script>
 </body>
