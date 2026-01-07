@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Interaktiver Zeitstrahl – Die Judenbuche</title>
+
+  <!-- jsPDF (PDF-Export) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     :root{
       --bg:#f6f7fb;
@@ -91,7 +95,6 @@
     }
     .card-body{padding:12px 14px}
 
-    /* Search */
     .search{
       display:flex;gap:10px;align-items:center;
       border:1px solid var(--border);
@@ -117,7 +120,6 @@
       font-weight:900;
     }
 
-    /* Timeline */
     .timeline-list{
       max-height:74vh;
       overflow:auto;
@@ -165,7 +167,6 @@
       display:flex;gap:8px;flex-wrap:wrap;
     }
 
-    /* Details */
     .details h2{margin:0 0 6px;font-size:1.15rem;letter-spacing:.2px}
     .meta-line{margin:4px 0 0;color:var(--muted);font-size:.86rem;line-height:1.35}
     .details p{margin:10px 0 0;line-height:1.45;font-size:.92rem}
@@ -179,7 +180,6 @@
       color:#1f3f96;
     }
 
-    /* Floating edit button */
     .fab{
       position:fixed;
       right:18px;
@@ -205,7 +205,6 @@
       font-weight:900;
     }
 
-    /* Modal */
     .modal-backdrop{
       position:fixed;
       inset:0;
@@ -217,7 +216,7 @@
       z-index:50;
     }
     .modal{
-      width:min(520px, 100%);
+      width:min(560px, 100%);
       background:#fff;
       border:1px solid var(--border);
       border-radius:18px;
@@ -229,6 +228,7 @@
       border-bottom:1px solid var(--border);
       display:flex;justify-content:space-between;align-items:center;
       background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,1));
+      gap:10px;
     }
     .modal-head strong{font-size:.95rem}
     .modal-body{padding:14px}
@@ -260,10 +260,8 @@
     .secondary{background:rgba(17,24,39,.06);color:#111827;border:1px solid var(--border)}
     .danger{background:var(--danger);color:#fff}
     .hint{color:var(--muted);font-size:.78rem;margin-top:8px}
-
     hr{border:none;border-top:1px solid var(--border);margin:14px 0}
 
-    /* Export card */
     .mono{
       width:100%;
       min-height:130px;
@@ -271,15 +269,31 @@
       font-size:.8rem;
       line-height:1.35;
     }
+
+    /* Anti-copy (erschwert; nicht 100% sicher) */
+    body, .details, #timeline-list, #details-view {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    /* Im Editor erlauben wir Markieren wieder */
+    .modal, .modal *{
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
       <h1>Interaktiver Zeitstrahl – „Die Judenbuche“</h1>
       <p class="subtitle">
         Klicke links auf eine Station, um Inhalt & Interpretation zu sehen.
-        Standardmäßig ist alles <strong>nur zum Anschauen</strong>.
+        Standardmäßig ist alles <strong>nur zum Anschauen</strong>. Bearbeiten nur über Passwort.
       </p>
     </header>
 
@@ -313,16 +327,18 @@
 
           <hr />
 
-          <!-- EXPORT (nur ansehen, kein reset ohne editor) -->
+          <!-- VIEW-ONLY EXPORT -->
           <div>
             <div class="card-header" style="padding:0 0 10px;border:none;background:none;">
               <div class="card-title" style="font-size:.9rem;"><span class="icon">⇩</span><span>Export</span></div>
             </div>
             <p class="meta-line" style="margin-top:0;">
-              Du kannst die Daten als JSON anzeigen (z. B. sichern/kopieren).
+              JSON kannst du anzeigen. Bearbeiten/Importieren geht nur im Editor.
             </p>
             <div class="btnrow">
-              <button class="btn secondary" id="export-btn" type="button">Daten als JSON anzeigen</button>
+              <button class="btn secondary" id="export-btn" type="button">JSON anzeigen</button>
+              <button class="btn secondary" id="pdf-one-btn" type="button">Aktuelle Station als PDF</button>
+              <button class="btn secondary" id="pdf-all-btn" type="button">Alle Stationen als PDF</button>
             </div>
             <textarea id="export-area" class="mono" placeholder="Hier erscheinen die exportierten Daten…" readonly></textarea>
           </div>
@@ -331,7 +347,7 @@
     </div>
   </div>
 
-  <!-- Floating button -->
+  <!-- Floating edit button -->
   <button class="fab" id="open-editor" type="button" aria-label="Bearbeiten öffnen">
     <span class="mini">✎</span> Bearbeiten
   </button>
@@ -343,6 +359,7 @@
         <strong id="modal-title">Bearbeiten (Passwort erforderlich)</strong>
         <button class="btn secondary" id="close-modal" type="button">Schließen</button>
       </div>
+
       <div class="modal-body">
         <!-- STEP 1: PASSWORD -->
         <div id="pw-step">
@@ -351,13 +368,18 @@
           <div class="btnrow">
             <button class="btn primary" id="pw-confirm" type="button">OK</button>
           </div>
-          <div class="hint" id="pw-hint">Nur mit Passwort kann man Inhalte speichern/löschen.</div>
+          <div class="hint">Passwort: 1987</div>
         </div>
 
-        <!-- STEP 2: EDITOR (wird erst nach richtigem Passwort gezeigt) -->
+        <!-- STEP 2: EDITOR -->
         <div id="editor-step" style="display:none;">
           <div class="hint" style="margin-top:0;">
             Editor freigeschaltet. Änderungen werden im Browser gespeichert (localStorage).
+          </div>
+
+          <div class="btnrow" style="margin-top:10px;">
+            <button class="btn secondary" id="pdf-one-btn-editor" type="button">Aktuelle Station als PDF</button>
+            <button class="btn secondary" id="pdf-all-btn-editor" type="button">Alle Stationen als PDF</button>
           </div>
 
           <hr />
@@ -398,6 +420,21 @@
 
           <hr />
 
+          <!-- JSON EDIT/IMPORT (nur im Editor) -->
+          <div>
+            <strong style="display:block;margin-bottom:6px;">JSON (bearbeiten & importieren)</strong>
+            <div class="hint" style="margin-top:0;">
+              Hier kannst du JSON einfügen/ändern und importieren. Das überschreibt die aktuellen Daten.
+            </div>
+            <div class="btnrow" style="margin-top:10px;">
+              <button class="btn secondary" id="editor-json-export" type="button">Aktuelles JSON laden</button>
+              <button class="btn primary" id="editor-json-import" type="button">JSON importieren</button>
+            </div>
+            <textarea id="editor-json-area" class="mono" placeholder="Hier JSON einfügen oder bearbeiten…"></textarea>
+          </div>
+
+          <hr />
+
           <div>
             <div class="hint" style="margin-top:0;"><strong>Gefährlich:</strong> Zurücksetzen löscht alle eigenen Änderungen.</div>
             <div class="btnrow">
@@ -411,124 +448,77 @@
   </div>
 
   <script>
-    // --- Originaldaten (inhaltlich unverändert) ---
+    // ======================
+    // Daten (inhaltlich unverändert)
+    // ======================
     const defaultEvents = [
-      {
-        id: "k1",
-        order: 1,
-        time: "Vor Friedrichs Geburt / Vorgeschichte",
-        label: "Hermann Mergel, Armut und Gewalt",
-        description:
-          "Im Dorf B. leben die Mergels in großer Armut. Friedrichs Vater Hermann ist gewalttätig, trinkt viel und ist in Holzdiebstähle und andere Waldfrevel verstrickt. Die Dorfgemeinschaft ist von Abhängigkeiten, Vorteilen und Korruption geprägt.",
-        interpretation:
-          "Die Vorgeschichte zeigt den sozialen und moralischen Nährboden, aus dem Friedrich stammt. Die Novelle betont damit eine deterministische Sicht: Charakter und Schuld entstehen nicht im luftleeren Raum, sondern aus Milieu, Armut und Gewalt. Schon hier wird klar, dass Recht und Gerechtigkeit im Dorf nicht verlässlich funktionieren.",
-        topics: "Armut, Gewalt, sozialer Determinismus, Korruption, Milieu"
+      { id:"k1", order:1, time:"Vor Friedrichs Geburt / Vorgeschichte", label:"Hermann Mergel, Armut und Gewalt",
+        description:"Im Dorf B. leben die Mergels in großer Armut. Friedrichs Vater Hermann ist gewalttätig, trinkt viel und ist in Holzdiebstähle und andere Waldfrevel verstrickt. Die Dorfgemeinschaft ist von Abhängigkeiten, Vorteilen und Korruption geprägt.",
+        interpretation:"Die Vorgeschichte zeigt den sozialen und moralischen Nährboden, aus dem Friedrich stammt. Die Novelle betont damit eine deterministische Sicht: Charakter und Schuld entstehen nicht im luftleeren Raum, sondern aus Milieu, Armut und Gewalt. Schon hier wird klar, dass Recht und Gerechtigkeit im Dorf nicht verlässlich funktionieren.",
+        topics:"Armut, Gewalt, sozialer Determinismus, Korruption, Milieu"
       },
-      {
-        id: "k2",
-        order: 2,
-        time: "Friedrichs Kindheit",
-        label: "Friedrich zwischen Pastor M. und Johannes Niemand",
-        description:
-          "Nach dem Tod des Vaters lebt Friedrich mit seiner Mutter in schwierigen Verhältnissen. Er hat Kontakt zu dem moralisch vorbildlichen Pastor M., aber auch zu dem Außenseiter Johannes Niemand, der als halbkriminell gilt. Friedrich schwankt zwischen diesen Einflüssen.",
-        interpretation:
-          "Diese Station macht den inneren Konflikt deutlich: Friedrich könnte einen 'guten' Weg einschlagen, wird aber letztlich stärker vom Milieu der Gesetzesverstöße angezogen. Das unterstreicht das Motiv von Freiheit vs. Determination: Wie frei ist Friedrich in seinen Entscheidungen?",
-        topics: "Erziehung, Vorbilder, Freiheit vs. Determinismus, Außenseiter"
+      { id:"k2", order:2, time:"Friedrichs Kindheit", label:"Friedrich zwischen Pastor M. und Johannes Niemand",
+        description:"Nach dem Tod des Vaters lebt Friedrich mit seiner Mutter in schwierigen Verhältnissen. Er hat Kontakt zu dem moralisch vorbildlichen Pastor M., aber auch zu dem Außenseiter Johannes Niemand, der als halbkriminell gilt. Friedrich schwankt zwischen diesen Einflüssen.",
+        interpretation:"Diese Station macht den inneren Konflikt deutlich: Friedrich könnte einen 'guten' Weg einschlagen, wird aber letztlich stärker vom Milieu der Gesetzesverstöße angezogen. Das unterstreicht das Motiv von Freiheit vs. Determination: Wie frei ist Friedrich in seinen Entscheidungen?",
+        topics:"Erziehung, Vorbilder, Freiheit vs. Determinismus, Außenseiter"
       },
-      {
-        id: "k3",
-        order: 3,
-        time: "Junge Erwachsenenjahre",
-        label: "Wald, Holzfrevel und soziales Klima",
-        description:
-          "Friedrich arbeitet im Umfeld von Simon Semmler und wird in Holzdiebstähle und andere illegale Waldnutzung verwickelt. Die Grenzen zwischen Recht und Unrecht sind im Dorf unscharf, da viele von den Freveln profitieren.",
-        interpretation:
-          "Der Wald wird zu einem zentralen Symbolraum: Hier geschehen geheime, oft illegale Handlungen. Die Dorfgemeinschaft akzeptiert dies stillschweigend. Das zeigt die Kluft zwischen offiziellem Recht und gelebter Moral sowie die Macht der Gemeinschaft über das Individuum.",
-        topics: "Wald als Symbol, Recht vs. gelebte Moral, Gruppendruck, Mitläufertum"
+      { id:"k3", order:3, time:"Junge Erwachsenenjahre", label:"Wald, Holzfrevel und soziales Klima",
+        description:"Friedrich arbeitet im Umfeld von Simon Semmler und wird in Holzdiebstähle und andere illegale Waldnutzung verwickelt. Die Grenzen zwischen Recht und Unrecht sind im Dorf unscharf, da viele von den Freveln profitieren.",
+        interpretation:"Der Wald wird zu einem zentralen Symbolraum: Hier geschehen geheime, oft illegale Handlungen. Die Dorfgemeinschaft akzeptiert dies stillschweigend. Das zeigt die Kluft zwischen offiziellem Recht und gelebter Moral sowie die Macht der Gemeinschaft über das Individuum.",
+        topics:"Wald als Symbol, Recht vs. gelebte Moral, Gruppendruck, Mitläufertum"
       },
-      {
-        id: "k4",
-        order: 4,
-        time: "Zeit vor dem Mord",
-        label: "Konflikte mit dem Juden Aaron",
-        description:
-          "Der jüdische Holzhändler Aaron gerät mit den Dorfbewohnern in Streit, unter anderem wegen Geldforderungen. Es kommt zu Spannungen und Feindseligkeiten. Aaron wird als Fremder wahrgenommen und teilweise offen antisemitisch behandelt.",
-        interpretation:
-          "Die Figur Aarons macht den religiös und sozial begründeten Antijudaismus sichtbar. Er ist Projektionsfläche für wirtschaftliche Frustrationen und Vorurteile. Die Novelle zeigt, wie Gewalt durch Vorurteile und ökonomische Interessen vorbereitet wird.",
-        topics: "Antijudaismus, Vorurteile, Sündenbock, ökonomische Spannungen"
+      { id:"k4", order:4, time:"Zeit vor dem Mord", label:"Konflikte mit dem Juden Aaron",
+        description:"Der jüdische Holzhändler Aaron gerät mit den Dorfbewohnern in Streit, unter anderem wegen Geldforderungen. Es kommt zu Spannungen und Feindseligkeiten. Aaron wird als Fremder wahrgenommen und teilweise offen antisemitisch behandelt.",
+        interpretation:"Die Figur Aarons macht den religiös und sozial begründeten Antijudaismus sichtbar. Er ist Projektionsfläche für wirtschaftliche Frustrationen und Vorurteile. Die Novelle zeigt, wie Gewalt durch Vorurteile und ökonomische Interessen vorbereitet wird.",
+        topics:"Antijudaismus, Vorurteile, Sündenbock, ökonomische Spannungen"
       },
-      {
-        id: "k5",
-        order: 5,
-        time: "Mordnacht",
-        label: "Der Mord an Aaron im Wald",
-        description:
-          "In einer verhängnisvollen Nacht treffen Friedrich und Johannes Niemand – betrunken – im Wald auf Aaron. Später wird Aaron erschlagen aufgefunden. Die genauen Umstände bleiben unklar. Die Dorfgemeinschaft verdächtigt Friedrich stark, doch ein eindeutiger Beweis fehlt.",
-        interpretation:
-          "Die Unklarheit der Täterschaft ist zentral: Die Novelle spielt bewusst mit Unsicherheit und Schuldfragen. Damit stellt sie auch die Grenzen menschlicher Wahrheitsermittlung und der Justiz dar. Zugleich verdichten sich hier die Motive Wald, Gewalt, Schuld und Ausgrenzung des Juden.",
-        topics: "Schuldfrage, Ungewissheit, Gewalt, Wald, Justiz"
+      { id:"k5", order:5, time:"Mordnacht", label:"Der Mord an Aaron im Wald",
+        description:"In einer verhängnisvollen Nacht treffen Friedrich und Johannes Niemand – betrunken – im Wald auf Aaron. Später wird Aaron erschlagen aufgefunden. Die genauen Umstände bleiben unklar. Die Dorfgemeinschaft verdächtigt Friedrich stark, doch ein eindeutiger Beweis fehlt.",
+        interpretation:"Die Unklarheit der Täterschaft ist zentral: Die Novelle spielt bewusst mit Unsicherheit und Schuldfragen. Damit stellt sie auch die Grenzen menschlicher Wahrheitsermittlung und der Justiz dar. Zugleich verdichten sich hier die Motive Wald, Gewalt, Schuld und Ausgrenzung des Juden.",
+        topics:"Schuldfrage, Ungewissheit, Gewalt, Wald, Justiz"
       },
-      {
-        id: "k6",
-        order: 6,
-        time: "Unmittelbar nach dem Mord",
-        label: "Verdacht, Verhör und Friedrichs Flucht",
-        description:
-          "Nach dem Mord wird Friedrich verhört. Die Dorfgemeinschaft und die Indizien legen seine Täterschaft nahe, aber ein Geständnis gibt es nicht. Kurz vor einer endgültigen Entscheidung flieht Friedrich plötzlich und gilt als verschwunden.",
-        interpretation:
-          "Die Flucht wirkt wie ein indirektes Schuldeingeständnis, bleibt aber rechtlich unbewiesen. Hier prallen menschliches Rechtssystem und moralische Schuld aufeinander. Die Novelle zeigt, wie schwach die Institutionen sind und wie stark Gerüchte und Meinungen der Gemeinschaft.",
-        topics: "Rechtssystem, Gerüchte, Schuld vs. Unschuldsvermutung, Flucht"
+      { id:"k6", order:6, time:"Unmittelbar nach dem Mord", label:"Verdacht, Verhör und Friedrichs Flucht",
+        description:"Nach dem Mord wird Friedrich verhört. Die Dorfgemeinschaft und die Indizien legen seine Täterschaft nahe, aber ein Geständnis gibt es nicht. Kurz vor einer endgültigen Entscheidung flieht Friedrich plötzlich und gilt als verschwunden.",
+        interpretation:"Die Flucht wirkt wie ein indirektes Schuldeingeständnis, bleibt aber rechtlich unbewiesen. Hier prallen menschliches Rechtssystem und moralische Schuld aufeinander. Die Novelle zeigt, wie schwach die Institutionen sind und wie stark Gerüchte und Meinungen der Gemeinschaft.",
+        topics:"Rechtssystem, Gerüchte, Schuld vs. Unschuldsvermutung, Flucht"
       },
-      {
-        id: "k7",
-        order: 7,
-        time: "Viele Jahre später",
-        label: "Rückkehr des Fremden",
-        description:
-          "Jahre später taucht ein Fremder auf, der sich als 'von Reisenheim' ausgibt und später als Friedrich Mergel erkannt wird. Er wirkt gebrochen und gezeichnet von seinem Leben in der Fremde.",
-        interpretation:
-          "Die Rückkehr des scheinbar Verschollenen wirkt wie eine späte Konfrontation mit der Vergangenheit. Die Zeit heilt hier nichts; Schuld und Erinnerung holen Friedrich ein. Das verstärkt das Motiv der Unentrinnbarkeit von Schuld.",
-        topics: "Vergangenheit, Identität, Schuld, Heimkehr"
+      { id:"k7", order:7, time:"Viele Jahre später", label:"Rückkehr des Fremden",
+        description:"Jahre später taucht ein Fremder auf, der sich als 'von Reisenheim' ausgibt und später als Friedrich Mergel erkannt wird. Er wirkt gebrochen und gezeichnet von seinem Leben in der Fremde.",
+        interpretation:"Die Rückkehr des scheinbar Verschollenen wirkt wie eine späte Konfrontation mit der Vergangenheit. Die Zeit heilt hier nichts; Schuld und Erinnerung holen Friedrich ein. Das verstärkt das Motiv der Unentrinnbarkeit von Schuld.",
+        topics:"Vergangenheit, Identität, Schuld, Heimkehr"
       },
-      {
-        id: "k8",
-        order: 8,
-        time: "Nach der Rückkehr",
-        label: "Verhöre und erneute Gerichtsverfahren",
-        description:
-          "Friedrich wird erneut zu den Ereignissen rund um den Mord an Aaron befragt. Wieder bleiben viele Fragen offen, trotz einiger neuer Informationen. Die endgültige Wahrheitsfindung gelingt nicht.",
-        interpretation:
-          "Die erneuten Verhöre unterstreichen, dass das menschliche Streben nach absoluter Wahrheit an Grenzen stößt. Rechtliche Klärung und moralische Wahrheit fallen auseinander. Die Novelle bleibt bewusst ambivalent.",
-        topics: "Wahrheit, Justiz, Ambivalenz, Erkenntnisgrenzen"
+      { id:"k8", order:8, time:"Nach der Rückkehr", label:"Verhöre und erneute Gerichtsverfahren",
+        description:"Friedrich wird erneut zu den Ereignissen rund um den Mord an Aaron befragt. Wieder bleiben viele Fragen offen, trotz einiger neuer Informationen. Die endgültige Wahrheitsfindung gelingt nicht.",
+        interpretation:"Die erneuten Verhöre unterstreichen, dass das menschliche Streben nach absoluter Wahrheit an Grenzen stößt. Rechtliche Klärung und moralische Wahrheit fallen auseinander. Die Novelle bleibt bewusst ambivalent.",
+        topics:"Wahrheit, Justiz, Ambivalenz, Erkenntnisgrenzen"
       },
-      {
-        id: "k9",
-        order: 9,
-        time: "Schlussszene",
-        label: "Friedrichs Tod an der Judenbuche",
-        description:
-          "Kurz nach seiner Rückkehr wird Friedrich tot an der Judenbuche aufgefunden – erhängt. Am Baum befindet sich eine Inschrift, die auf göttliche Vergeltung für den Mord an Aaron hinweist.",
-        interpretation:
-          "Die Judenbuche wird zum starken Symbol göttlicher oder übermenschlicher Gerechtigkeit: Was das menschliche Recht nicht eindeutig klären konnte, scheint auf einer höheren Ebene 'gerichtet' zu werden. Gleichzeitig bleibt offen, ob es Selbstmord, Verzweiflung oder eine Art symbolischer 'Strafvollzug' ist.",
-        topics: "Göttliches Gericht, Symbolik, Tod, letzte Konsequenz der Schuld"
+      { id:"k9", order:9, time:"Schlussszene", label:"Friedrichs Tod an der Judenbuche",
+        description:"Kurz nach seiner Rückkehr wird Friedrich tot an der Judenbuche aufgefunden – erhängt. Am Baum befindet sich eine Inschrift, die auf göttliche Vergeltung für den Mord an Aaron hinweist.",
+        interpretation:"Die Judenbuche wird zum starken Symbol göttlicher oder übermenschlicher Gerechtigkeit: Was das menschliche Recht nicht eindeutig klären konnte, scheint auf einer höheren Ebene 'gerichtet' zu werden. Gleichzeitig bleibt offen, ob es Selbstmord, Verzweiflung oder eine Art symbolischer 'Strafvollzug' ist.",
+        topics:"Göttliches Gericht, Symbolik, Tod, letzte Konsequenz der Schuld"
       },
-      {
-        id: "k10",
-        order: 10,
-        time: "Rahmen / Erzähler",
-        label: "Rahmenerzählung und historische Einbettung",
-        description:
-          "Die Novelle ist als quasi-dokumentarische Erzählung gestaltet. Der Erzähler verweist auf angeblich reale Akten und Quellen und verortet die Handlung in einem konkreten historischen und regionalen Kontext.",
-        interpretation:
-          "Der quasi-dokumentarische Ton verstärkt den Realismus und macht die Schuldfrage noch bedrückender, weil sie 'wirklich' hätte geschehen können. Gleichzeitig reflektiert die Novelle den Umgang mit Verbrechen, Juden und Randgruppen in der damaligen Gesellschaft.",
-        topics: "Realismus, Erzählerrolle, historische Authentizität, Gesellschaftskritik"
+      { id:"k10", order:10, time:"Rahmen / Erzähler", label:"Rahmenerzählung und historische Einbettung",
+        description:"Die Novelle ist als quasi-dokumentarische Erzählung gestaltet. Der Erzähler verweist auf angeblich reale Akten und Quellen und verortet die Handlung in einem konkreten historischen und regionalen Kontext.",
+        interpretation:"Der quasi-dokumentarische Ton verstärkt den Realismus und macht die Schuldfrage noch bedrückender, weil sie 'wirklich' hätte geschehen können. Gleichzeitig reflektiert die Novelle den Umgang mit Verbrechen, Juden und Randgruppen in der damaligen Gesellschaft.",
+        topics:"Realismus, Erzählerrolle, historische Authentizität, Gesellschaftskritik"
       }
     ];
 
-    const STORAGE_KEY = "judenbucheTimeline_viewOnly";
+    const STORAGE_KEY = "judenbucheTimeline_viewOnly_pdf";
     let events = [];
     let selectedId = null;
     let query = "";
+    let editorUnlocked = false;
+
+    // ===== Anti-copy (erschwert) =====
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
+    document.addEventListener("keydown", (e) => {
+      const key = (e.key || "").toLowerCase();
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+      if (ctrlOrCmd && ["c","x","a","p","s","u"].includes(key)) e.preventDefault();
+      if (e.key === "F12") e.preventDefault();
+    });
+    document.addEventListener("copy", (e) => e.preventDefault());
 
     function deepCopy(x){ return JSON.parse(JSON.stringify(x)); }
 
@@ -552,10 +542,7 @@
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            events = parsed;
-            return;
-          }
+          if (Array.isArray(parsed)) { events = parsed; return; }
         } catch (e) {
           console.warn("Konnte gespeicherte Daten nicht laden, verwende Standarddaten.", e);
         }
@@ -673,6 +660,7 @@
       `;
 
       highlightActive();
+      if(editorUnlocked) fillFormForSelected();
     }
 
     function highlightActive(){
@@ -681,30 +669,25 @@
       });
     }
 
-    // ===== Editor (nur im Modal sichtbar) =====
-    let editorUnlocked = false;
-
+    // ===== Modal / Editor =====
     function openModal(){
       const bd = document.getElementById("modal-backdrop");
       bd.style.display = "flex";
       bd.setAttribute("aria-hidden", "false");
       document.getElementById("pw").focus();
+      showEditor(false);
     }
     function closeModal(){
       const bd = document.getElementById("modal-backdrop");
       bd.style.display = "none";
       bd.setAttribute("aria-hidden", "true");
-      // reset pw field
       document.getElementById("pw").value = "";
     }
-
     function showEditor(unlocked){
       editorUnlocked = unlocked;
       document.getElementById("pw-step").style.display = unlocked ? "none" : "block";
       document.getElementById("editor-step").style.display = unlocked ? "block" : "none";
-      if(unlocked){
-        fillFormForSelected();
-      }
+      if(unlocked) fillFormForSelected();
     }
 
     function fillFormForSelected(){
@@ -734,6 +717,101 @@
       highlightActive();
     }
 
+    // ===== PDF =====
+    function ensureJsPdfReady(){
+      return typeof window.jspdf !== "undefined" && window.jspdf.jsPDF;
+    }
+
+    function stationText(ev){
+      const topics = String(ev.topics || "").trim();
+      return [
+        `Nr. ${ev.order ?? "—"}  •  ${ev.time || "—"}`,
+        "",
+        `Titel: ${ev.label || ""}`,
+        "",
+        "Inhalt:",
+        ev.description || "",
+        "",
+        "Interpretation:",
+        ev.interpretation || "",
+        "",
+        topics ? `Themen/Motive: ${topics}` : ""
+      ].filter(Boolean).join("\n");
+    }
+
+    function downloadStationPdf(ev){
+      if(!ensureJsPdfReady()){
+        alert("PDF-Bibliothek ist noch nicht geladen. Bitte kurz neu versuchen.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:"pt", format:"a4" });
+      const margin = 48;
+      const width = doc.internal.pageSize.getWidth() - margin*2;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Die Judenbuche – Station", margin, 64);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+
+      const text = stationText(ev);
+      const lines = doc.splitTextToSize(text, width);
+      let y = 90;
+
+      lines.forEach(line => {
+        if(y > doc.internal.pageSize.getHeight() - margin){
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += 14;
+      });
+
+      const safeName = (ev.label || "station").replace(/[^\wäöüÄÖÜß\- ]+/g, "").trim().slice(0,40) || "station";
+      doc.save(`Judenbuche_Station_${ev.order ?? ""}_${safeName}.pdf`);
+    }
+
+    function downloadAllStationsPdf(){
+      if(!ensureJsPdfReady()){
+        alert("PDF-Bibliothek ist noch nicht geladen. Bitte kurz neu versuchen.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:"pt", format:"a4" });
+      const margin = 48;
+      const width = doc.internal.pageSize.getWidth() - margin*2;
+
+      const sorted = [...events].sort((a,b)=>(a.order||0)-(b.order||0));
+
+      sorted.forEach((ev, idx) => {
+        if(idx > 0) doc.addPage(); // jede Station neue Seite
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("Die Judenbuche – Station", margin, 64);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+
+        const text = stationText(ev);
+        const lines = doc.splitTextToSize(text, width);
+
+        let y = 90;
+        lines.forEach(line => {
+          if(y > doc.internal.pageSize.getHeight() - margin){
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(line, margin, y);
+          y += 14;
+        });
+      });
+
+      doc.save("Judenbuche_Alle_Stationen.pdf");
+    }
+
     // ===== Handlers =====
     document.getElementById("search").addEventListener("input", (e) => {
       query = e.target.value || "";
@@ -745,19 +823,22 @@
       document.getElementById("export-area").value = JSON.stringify(events, null, 2);
     });
 
-    document.getElementById("open-editor").addEventListener("click", () => {
-      openModal();
-      showEditor(false);
+    document.getElementById("pdf-one-btn").addEventListener("click", () => {
+      const ev = events.find(e => e.id === selectedId);
+      if(!ev) return alert("Keine Station ausgewählt.");
+      downloadStationPdf(ev);
     });
 
-    document.getElementById("close-modal").addEventListener("click", () => closeModal());
+    document.getElementById("pdf-all-btn").addEventListener("click", () => {
+      downloadAllStationsPdf();
+    });
 
-    // close modal on backdrop click
+    document.getElementById("open-editor").addEventListener("click", () => openModal());
+    document.getElementById("close-modal").addEventListener("click", () => closeModal());
     document.getElementById("modal-backdrop").addEventListener("click", (e) => {
       if(e.target.id === "modal-backdrop") closeModal();
     });
 
-    // password confirm
     document.getElementById("pw-confirm").addEventListener("click", () => {
       const val = String(document.getElementById("pw").value || "").trim();
       if(val === "1987"){
@@ -767,7 +848,6 @@
       }
     });
 
-    // enter submits password
     document.getElementById("pw").addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
         e.preventDefault();
@@ -775,21 +855,17 @@
       }
     });
 
-    // when selecting event, update editor form if open+unlocked
-    function onSelectionChanged(){
-      if(editorUnlocked){
-        fillFormForSelected();
-      }
-    }
+    // Editor: PDF Buttons
+    document.getElementById("pdf-one-btn-editor").addEventListener("click", () => {
+      const ev = events.find(e => e.id === selectedId);
+      if(!ev) return alert("Keine Station ausgewählt.");
+      downloadStationPdf(ev);
+    });
+    document.getElementById("pdf-all-btn-editor").addEventListener("click", () => {
+      downloadAllStationsPdf();
+    });
 
-    // Hook selection
-    const originalSelectEvent = selectEvent;
-    selectEvent = function(id){
-      originalSelectEvent(id);
-      onSelectionChanged();
-    };
-
-    // Editor form submit
+    // Editor: CRUD
     document.getElementById("edit-form").addEventListener("submit", (e) => {
       e.preventDefault();
       if(!editorUnlocked) return;
@@ -807,10 +883,7 @@
       const topics = document.getElementById("form-topics").value.trim();
 
       let ev = events.find(x => x.id === id);
-      if(!ev){
-        ev = { id };
-        events.push(ev);
-      }
+      if(!ev){ ev = { id }; events.push(ev); }
 
       ev.order = order;
       ev.time = time;
@@ -822,7 +895,7 @@
       selectedId = id;
       saveEvents();
       renderTimeline();
-      originalSelectEvent(id);
+      selectEvent(id);
       alert("Gespeichert.");
     });
 
@@ -853,16 +926,46 @@
       selectedId = events.length ? events[0].id : null;
       saveEvents();
       renderTimeline();
-      if(selectedId) originalSelectEvent(selectedId);
+      if(selectedId) selectEvent(selectedId);
       alert("Zurückgesetzt.");
+    });
+
+    // Editor: JSON export/import (das, was du meintest mit "code anschauen" => auch bearbeiten)
+    document.getElementById("editor-json-export").addEventListener("click", () => {
+      document.getElementById("editor-json-area").value = JSON.stringify(events, null, 2);
+    });
+
+    document.getElementById("editor-json-import").addEventListener("click", () => {
+      if(!editorUnlocked) return;
+      const text = document.getElementById("editor-json-area").value.trim();
+      if(!text) return alert("JSON ist leer.");
+
+      try{
+        const parsed = JSON.parse(text);
+        if(!Array.isArray(parsed)) throw new Error("JSON muss ein Array sein.");
+        // Minimal-Check: jedes Element braucht id
+        for(const ev of parsed){
+          if(!ev || typeof ev !== "object" || !ev.id) throw new Error("Jede Station braucht ein Feld 'id'.");
+        }
+        events = parsed;
+        saveEvents();
+        // neu rendern
+        selectedId = events.length ? events.sort((a,b)=>(a.order||0)-(b.order||0))[0].id : null;
+        renderTimeline();
+        if(selectedId) selectEvent(selectedId);
+        alert("JSON importiert.");
+      } catch(err){
+        alert("Fehler im JSON: " + (err?.message || String(err)));
+      }
     });
 
     // INIT
     window.addEventListener("DOMContentLoaded", () => {
       loadEvents();
+      events.sort((a,b)=>(a.order||0)-(b.order||0));
       if(events.length) selectedId = events[0].id;
       renderTimeline();
-      if(selectedId) originalSelectEvent(selectedId);
+      if(selectedId) selectEvent(selectedId);
     });
   </script>
 </body>
